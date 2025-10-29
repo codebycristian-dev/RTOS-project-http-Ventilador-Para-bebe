@@ -1,7 +1,7 @@
 {
     "version":            "1.1",
     "project_name":       "ADC_P",
-    "project_version":    "6922104-dirty",
+    "project_version":    "5de5530-dirty",
     "project_path":       "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/ADC_P",
     "idf_path":           "C:/Espressif/frameworks/esp-idf-v5.3.1",
     "build_dir":          "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/ADC_P/build",
@@ -1195,7 +1195,7 @@
             "managed_reqs": [],
             "managed_priv_reqs": [ "espressif__led_strip" ],
             "file": "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/ADC_P/build/esp-idf/main/libmain.a",
-            "sources": [ "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/ADC_P/main/ADC.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/ADC_P/main/ledc.c" ],
+            "sources": [ "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/ADC_P/main/ADC.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/ADC_P/main/ledc.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/ADC_P/main/uart_user.c" ],
             "include_dirs": [ "." ]
         },
         "mbedtls": {

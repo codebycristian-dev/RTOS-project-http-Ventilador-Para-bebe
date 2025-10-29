@@ -1,41 +1,37 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h> // <---- necesario para log()
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "soc/soc_caps.h"
-#include "esp_log.h"
-#include "driver/adc.h"
-#include "esp_adc/adc_oneshot.h"
-#include "esp_adc/adc_cali.h"
-#include "esp_adc/adc_cali_scheme.h"
-#include "driver/ledc.h"
-#include "ledc.h" // tu encabezado personalizado
+#include <math.h> // <---- necesario para log() cuadras NTC
+#include "freertos/FreeRTOS.h" //libreria freertos 
+#include "freertos/task.h" // libreria para tareas 
+#include "esp_log.h" // libreria para anuncios por consola 
+#include "esp_adc/adc_oneshot.h" // libreria ADC
+#include "driver/ledc.h" // libreria PWM 
+#include "driver/adc.h" // libreria ADC
+#include "ledc.h" // Libreria configuración leds
+#include "uart_user.h" // Libreria UART
 
-const static char *TAG = "EXAMPLE";
+//const static char *TAG = "EXAMPLE"; // tag para anuncios por consola
 
 // -----------------------------------------------------------------------------
 // Variables globales
 // -----------------------------------------------------------------------------
-#define NUM_SAMPLES 64
+#define NUM_SAMPLES 64 //Número de muestras para promediar y mermar ruido
 
-LED led;                                      // estructura global de LED
-static adc_oneshot_unit_handle_t adc1_handle; // manejador ADC
+LED led; //Estrucutra LED para creacion de led RGB
+static adc_oneshot_unit_handle_t adc1_handle; // Implementación de manejador ADC1 
 
 // -----------------------------------------------------------------------------
 // Tarea: lee el potenciómetro (ADC6) y ajusta el LED verde
 // -----------------------------------------------------------------------------
-void myadc(void *pvParameters)
+void myadc(void *pvParameters) // Tarea para leer ADC6 y medir voltaje y ajustar LED verde
 {
-    int raw = 0;
-    int temp = 0;
+    int raw = 0; // Variable para almacenar el valor crudo del ADC
+    int temp = 0; // Variable temporal para lectura individual del ADC
 
     while (1)
     {
         raw = 0;
-        // Leer y promediar muestras
-        for (int i = 0; i < NUM_SAMPLES; i++)
+        // Lee 64 muestras y las pormedia para una lectura mas exacta 
+        for (int i = 0; i < NUM_SAMPLES; i++) // ciclo hasta NUM_SAMPLES 
         {
             if (adc_oneshot_read(adc1_handle, ADC_CHANNEL_6, &temp) == ESP_OK)
             {
@@ -43,8 +39,7 @@ void myadc(void *pvParameters)
             }
         }
         raw /= NUM_SAMPLES;
-
-        // Escalar a 8 bits
+        // Convierte el valor crudo a duty cycle, voltaje y porcentaje
         uint16_t duty = (raw * 255) / 4095;
         int voltage = (raw * 3300) / 4095;
         int percent = (duty * 100) / 255;
@@ -54,7 +49,7 @@ void myadc(void *pvParameters)
         ledc_set_duty(LEDC_LOW_SPEED_MODE, led.CHANEL_G, led.Duty_G);
         ledc_update_duty(LEDC_LOW_SPEED_MODE, led.CHANEL_G);
 
-        ESP_LOGI(TAG, "ADC6 Pot: raw=%d | V=%dmV | Duty=%d%%", raw, voltage, percent);
+        ESP_LOGI("POTENCIOMETRO", "ADC6 Pot: Val ADC=%d  V=%dmV  Percent=%d%%", raw, voltage, percent);
 
         vTaskDelay(pdMS_TO_TICKS(500));
     }
@@ -80,7 +75,7 @@ void myNTC(void *pvParameters)
     {
         raw_ntc = 0;
 
-        // --- Lectura y promedio del ADC ---
+        // Lee 64 muestras y las pormedia para una lectura mas exacta 
         for (int i = 0; i < NUM_SAMPLES; i++)
         {
             if (adc_oneshot_read(adc1_handle, ADC_CHANNEL_7, &temp_adc) == ESP_OK)
@@ -106,7 +101,7 @@ void myNTC(void *pvParameters)
 
         // --- Escalar temperatura a brillo LED ---
         // 0°C -> duty = 0  |  60°C -> duty = 255
-        int duty_red = (int)((Tc - 0.0) * (255.0 / 60.0));
+        int duty_red = (int)((Tc) * (255.0 / 60.0));
 
         // Limitar duty dentro de 0 a 255
         if (duty_red < 0)
