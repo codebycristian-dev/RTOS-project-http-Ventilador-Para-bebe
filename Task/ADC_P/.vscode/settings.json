@@ -18,6 +18,15 @@
   ],
   "idf.flashType": "UART",
   "files.associations": {
-    "adc_oneshot.h": "c"
+    "adc_oneshot.h": "c",
+    "bitset": "c",
+    "chrono": "c",
+    "string_view": "c",
+    "algorithm": "c",
+    "random": "c",
+    "format": "c",
+    "istream": "c",
+    "limits": "c",
+    "numeric": "c"
   }
 }
