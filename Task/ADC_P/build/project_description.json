@@ -1,7 +1,7 @@
 {
     "version":            "1.1",
     "project_name":       "ADC_P",
-    "project_version":    "7eecfb2-dirty",
+    "project_version":    "371b8f7-dirty",
     "project_path":       "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/ADC_P",
     "idf_path":           "C:/Espressif/frameworks/esp-idf-v5.3.1",
     "build_dir":          "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/ADC_P/build",
