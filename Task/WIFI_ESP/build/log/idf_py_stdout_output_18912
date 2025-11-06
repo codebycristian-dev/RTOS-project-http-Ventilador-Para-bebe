@@ -1,0 +1,71 @@
+etsRչ���201��Ғ��57�C!���0x1 	�]I=�_RE�QU�I�ot:0Eets J]���16 0�22:�SH
+�.���� (POWQ���%UMQ�,boot:��3 (*}MT_FLP*�%=�T)
+�˙���ip: b SPI���
+cl�E���0x00,qE���0��,d_�.����0,cs0ߖ��0��,hd_���0x�,wp����0��
+m���DɊ	���k di��j
+l+��0�&���030,l�K����j
+loa���Ѱ�800blen:LMMSH�0�����12 ro��j
+�+���008�00,lYK�j
+load:��00��04,���3��
+e���0Q0080j
+[0;32mI (30) boot: ESP-IDF v5.3.1-dirty 2nd stage bootloader[0m
+[0;32mI (30) boot: compile time Nov  5 2025 18:38:42[0m
+[0;32mI (30) boot: Multicore bootloader[0m
+[0;32mI (35) boot: chip revision: v1.1[0m
+[0;32mI (39) boot.esp32: SPI Speed      : 40MHz[0m
+[0;32mI (43) boot.esp32: SPI Mode       : DIO[0m
+[0;32mI (48) boot.esp32: SPI Flash Size : 2MB[0m
+[0;32mI (52) boot: Enabling RNG early entropy source...[0m
+[0;32mI (58) boot: Partition Table:[0m
+[0;32mI (61) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (69) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (76) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (83) boot:  2 factory          factory app      00 00 00010000 00100000[0m
+[0;32mI (91) boot: End of partition table[0m
+[0;32mI (95) esp_image: segment 0: paddr=00010020 vaddr=3f400020 size=20254h (131668) map[0m
+[0;32mI (149) esp_image: segment 1: paddr=0003027c vaddr=3ffb0000 size=03f70h ( 16240) load[0m
+[0;32mI (155) esp_image: segment 2: paddr=000341f4 vaddr=40080000 size=0be24h ( 48676) load[0m
+[0;32mI (174) esp_image: segment 3: paddr=00040020 vaddr=400d0020 size=84af4h (543476) map[0m
+[0;32mI (361) esp_image: segment 4: paddr=000c4b1c vaddr=4008be24 size=0b750h ( 46928) load[0m
+[0;32mI (391) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (391) boot: Disabling RNG early entropy source...[0m
+[0;32mI (403) cpu_start: Multicore app[0m
+[0;32mI (412) cpu_start: Pro cpu start user code[0m
+[0;32mI (412) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (412) app_init: Application information:[0m
+[0;32mI (415) app_init: Project name:     WIFI_ESP[0m
+[0;32mI (419) app_init: App version:      ab7b94b-dirty[0m
+[0;32mI (425) app_init: Compile time:     Nov  5 2025 18:38:14[0m
+[0;32mI (431) app_init: ELF file SHA256:  a4edc130a...[0m
+[0;32mI (436) app_init: ESP-IDF:          v5.3.1-dirty[0m
+[0;32mI (441) efuse_init: Min chip rev:     v0.0[0m
+[0;32mI (446) efuse_init: Max chip rev:     v3.99 [0m
+[0;32mI (451) efuse_init: Chip rev:         v1.1[0m
+[0;32mI (456) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (463) heap_init: At 3FFAE6E0 len 00001920 (6 KiB): DRAM[0m
+[0;32mI (469) heap_init: At 3FFB8240 len 00027DC0 (159 KiB): DRAM[0m
+[0;32mI (475) heap_init: At 3FFE0440 len 00003AE0 (14 KiB): D/IRAM[0m
+[0;32mI (482) heap_init: At 3FFE4350 len 0001BCB0 (111 KiB): D/IRAM[0m
+[0;32mI (488) heap_init: At 40097574 len 00008A8C (34 KiB): IRAM[0m
+[0;32mI (496) spi_flash: detected chip: generic[0m
+[0;32mI (499) spi_flash: flash io: dio[0m
+[0;33mW (503) spi_flash: Detected size(4096k) larger than the size in the binary image header(2048k). Using the size in the binary image header.[0m
+[0;32mI (517) main_task: Started on CPU0[0m
+[0;32mI (527) main_task: Calling app_main()[0m
+[0;32mI (547) wifi_app: STARTING WIFI APPLICATION[0m
+[0;32mI (547) main_task: Returned from app_main()[0m
+[0;32mI (567) wifi_init: rx ba win: 6[0m
+[0;32mI (567) wifi_init: accept mbox: 6[0m
+[0;32mI (567) wifi_init: tcpip mbox: 32[0m
+[0;32mI (567) wifi_init: udp mbox: 6[0m
+[0;32mI (577) wifi_init: tcp mbox: 6[0m
+[0;32mI (577) wifi_init: tcp tx win: 5760[0m
+[0;32mI (577) wifi_init: tcp rx win: 5760[0m
+[0;32mI (587) wifi_init: tcp mss: 1440[0m
+[0;32mI (587) wifi_init: WiFi IRAM OP enabled[0m
+[0;32mI (597) wifi_init: WiFi RX IRAM OP enabled[0m
+[0;32mI (857) phy_init: phy_version 4830,54550f7,Jun 20 2024,14:22:08[0m
+[0;32mI (927) wifi_app: WIFI_EVENT_STA_START[0m
+[0;32mI (937) wifi_app: WIFI_APP_MSG_START_HTTP_SERVER[0m
+[0;32mI (937) wifi_app: WIFI_EVENT_AP_START[0m
+[0;32mI (937) esp_netif_lwip: DHCP server started on interface WIFI_AP_DEF with IP: 192.168.0.1[0m
