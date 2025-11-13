@@ -1,7 +1,7 @@
 {
     "version":            "1.1",
     "project_name":       "WIFI_ESP",
-    "project_version":    "ab7b94b-dirty",
+    "project_version":    "6a4a115-dirty",
     "project_path":       "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/WIFI_ESP",
     "idf_path":           "C:/Espressif/frameworks/esp-idf-v5.3.1",
     "build_dir":          "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/WIFI_ESP/build",
