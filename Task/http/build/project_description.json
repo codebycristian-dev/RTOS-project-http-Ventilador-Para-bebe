@@ -1,7 +1,7 @@
 {
     "version":            "1.1",
     "project_name":       "http",
-    "project_version":    "6a4a115-dirty",
+    "project_version":    "336c2f75-dirty",
     "project_path":       "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http",
     "idf_path":           "C:/Espressif/frameworks/esp-idf-v5.3.1",
     "build_dir":          "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/build",
