@@ -410,7 +410,32 @@ static esp_err_t http_server_rgb_values_handler(httpd_req_t *req)
 	rgb_led_set_color(atoi(red_str), atoi(green_str), atoi(blue_str));
 	return ESP_OK;
 }
+static esp_err_t http_server_rgb_color_handler(httpd_req_t *req)
+{
+	ESP_LOGI(TAG, "/rgb_color.json requested");
 
+	char val_str[8];
+
+	// Obtener rojo
+	int len = httpd_req_get_hdr_value_len(req, "red_val");
+	httpd_req_get_hdr_value_str(req, "red_val", val_str, len + 1);
+	int r = atoi(val_str);
+
+	// Obtener verde
+	len = httpd_req_get_hdr_value_len(req, "green_val");
+	httpd_req_get_hdr_value_str(req, "green_val", val_str, len + 1);
+	int g = atoi(val_str);
+
+	// Obtener azul
+	len = httpd_req_get_hdr_value_len(req, "blue_val");
+	httpd_req_get_hdr_value_str(req, "blue_val", val_str, len + 1);
+	int b = atoi(val_str);
+
+	rgb_led_set_color(r, g, b);
+
+	httpd_resp_send(req, NULL, 0);
+	return ESP_OK;
+}
 
 /**
  * Sets up the default httpd server configuration.
@@ -547,6 +572,12 @@ static httpd_handle_t http_server_configure(void)
 			.handler = http_server_toogle_uart_handler,
 			.user_ctx = NULL};
 		httpd_register_uri_handler(http_server_handle, &toogle_uart);
+		httpd_uri_t rgb_color = {
+			.uri = "/rgb_color.json",
+			.method = HTTP_POST,
+			.handler = http_server_rgb_color_handler,
+			.user_ctx = NULL};
+		httpd_register_uri_handler(http_server_handle, &rgb_color);
 
 		// register rgb_receiver handler
 		/*httpd_uri_t rgb_values = {

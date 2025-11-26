@@ -12,6 +12,8 @@ $(document).ready(function(){
 	getUpdateStatus();
 	startDHTSensorInterval();
 	print("ready")
+	startClock();
+
 	/*activate_listener('red_val');
 	activate_listener('green_val');
 	activate_listener('blue_val');
@@ -19,6 +21,18 @@ $(document).ready(function(){
 	$("#send_rgb").on("click", function(){
 		send_rgb_values();
 	});*/
+	$("#btn_red").on("click", function () {
+		set_rgb_color(255, 0, 0);
+	});
+
+	$("#btn_green").on("click", function () {
+		set_rgb_color(0, 255, 0);
+	});
+
+	$("#btn_blue").on("click", function () {
+		set_rgb_color(0, 0, 255);
+	});
+
 	$("#toogle_led").on("click", function(){
 		toogle_led();
 	}); 
@@ -201,28 +215,26 @@ function startWifiConnectStatusInterval()
 	wifiConnectInterval = setInterval(getWifiConnectStatus, 2800);
 }
 
-/**
- * Send the RGB values.
- */
-/*
-function send_rgb_values()
-{
-	// Get the SSID and password
-	red_val = $("#red_val").val();
-	green_val = $("#green_val").val();
-	blue_val = $("#blue_val").val();
-	
-	
+function set_rgb_color(r, g, b) {
 	$.ajax({
-		url: '/rgb_vals.json',
-		dataType: 'json',
+		url: '/rgb_color.json',
 		method: 'POST',
 		cache: false,
-		headers: {'red_val': red_val, 'green_val': green_val, 'blue_val': blue_val},
-		data: {'timestamp': Date.now()}
+		headers: { 'red_val': r, 'green_val': g, 'blue_val': b }
 	});
 }
-*/
+
+function startClock() {
+	setInterval(function () {
+		var now = new Date();
+		var hours = now.getHours().toString().padStart(2, '0');
+		var minutes = now.getMinutes().toString().padStart(2, '0');
+		var seconds = now.getSeconds().toString().padStart(2, '0');
+
+		$("#clock").text(hours + ":" + minutes + ":" + seconds);
+	}, 1000);
+}
+
 
 function turn_off_uart()
 {
