@@ -8,10 +8,20 @@
 #ifndef MAIN_HTTP_SERVER_H_
 #define MAIN_HTTP_SERVER_H_
 
-#define OTA_UPDATE_PENDING 		0
-#define OTA_UPDATE_SUCCESSFUL	1
-#define OTA_UPDATE_FAILED		-1
-#define BLINK_GPIO				2
+#define OTA_UPDATE_PENDING 0
+#define OTA_UPDATE_SUCCESSFUL 1
+#define OTA_UPDATE_FAILED -1
+#define BLINK_GPIO 2
+/**
+ * Connection status for Wifi
+ */
+typedef enum http_server_wifi_connect_status
+{
+	NONE = 0,
+	HTTP_WIFI_STATUS_CONNECTING,
+	HTTP_WIFI_STATUS_CONNECT_FAILED,
+	HTTP_WIFI_STATUS_CONNECT_SUCCESS,
+} http_server_wifi_connect_status_e;
 
 /**
  * Messages for the HTTP monitor
@@ -46,6 +56,10 @@ BaseType_t http_server_monitor_send_message(http_server_message_e msgID);
  */
 void http_server_start(void);
 
+static void mqtt_app_start(void);
+static void log_error_if_nonzero(const char *message, int error_code);
+
+static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data);
 /**
  * Stops the HTTP server.
  */
@@ -56,6 +70,6 @@ void http_server_stop(void);
  */
 void http_server_fw_update_reset_callback(void *arg);
 
-
+void toogle_led(void);
 
 #endif /* MAIN_HTTP_SERVER_H_ */

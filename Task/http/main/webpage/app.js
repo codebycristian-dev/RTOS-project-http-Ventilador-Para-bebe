@@ -9,37 +9,11 @@ var wifiConnectInterval = null;
  * Initialize functions here.
  */
 $(document).ready(function(){
-	getUpdateStatus();
+	//getUpdateStatus();
 	startDHTSensorInterval();
-	print("ready")
-	startClock();
-
-	/*activate_listener('red_val');
-	activate_listener('green_val');
-	activate_listener('blue_val');
-	
-	$("#send_rgb").on("click", function(){
-		send_rgb_values();
-	});*/
-	$("#btn_red").on("click", function () {
-		set_rgb_color(255, 0, 0);
-	});
-
-	$("#btn_green").on("click", function () {
-		set_rgb_color(0, 255, 0);
-	});
-
-	$("#btn_blue").on("click", function () {
-		set_rgb_color(0, 0, 255);
-	});
-
-	$("#toogle_led").on("click", function(){
-		toogle_led();
+	$("#connect_wifi").on("click", function(){
+		checkCredentials();
 	}); 
-	$("#apagar_uart").on("click", function(){
-		turn_off_uart();
-	}); 
-
 });   
 
 /**
@@ -150,21 +124,40 @@ function otaRebootTimer()
 /**
  * Gets DHT22 sensor temperature and humidity values for display on the web page.
  */
+
+
+function getregValues()
+{
+	$.getJSON('/read_regs.json', function(data) {
+		$("#reg_1").text(data["reg1"]);
+		$("#reg_2").text(data["reg2"]);
+		$("#reg_3").text(data["reg3"]);
+		$("#reg_4").text(data["reg4"]);
+		$("#reg_5").text(data["reg5"]);
+		$("#reg_6").text(data["reg6"]);
+		$("#reg_7").text(data["reg7"]);
+		$("#reg_8").text(data["reg8"]);
+		$("#reg_9").text(data["reg9"]);
+		$("#reg_10").text(data["reg10"]);
+	});
+}
+
 function getDHTSensorValues()
 {
 	$.getJSON('/dhtSensor.json', function(data) {
 		$("#temperature_reading").text(data["temp"]);
-		$("#humidity_reading").text(data["humidity"]);
 	});
 }
 
 /**
  * Sets the interval for getting the updated DHT22 sensor values.
  */
+
 function startDHTSensorInterval()
 {
 	setInterval(getDHTSensorValues, 5000);    
 }
+
 
 /**
  * Clears the connection status interval.
@@ -215,33 +208,174 @@ function startWifiConnectStatusInterval()
 	wifiConnectInterval = setInterval(getWifiConnectStatus, 2800);
 }
 
-function set_rgb_color(r, g, b) {
+/**
+ * Connect WiFi function called using the SSID and password entered into the text fields.
+ */
+function connectWifi()
+{
+	// Get the SSID and password
+	/*selectedSSID = $("#connect_ssid").val();
+	pwd = $("#connect_pass").val();
+	
 	$.ajax({
-		url: '/rgb_color.json',
+		url: '/wifiConnect.json',
+		dataType: 'json',
 		method: 'POST',
 		cache: false,
-		headers: { 'red_val': r, 'green_val': g, 'blue_val': b }
+		headers: {'my-connect-ssid': selectedSSID, 'my-connect-pwd': pwd},
+		data: {'timestamp': Date.now()}
 	});
+	*/
+	selectedSSID = $("#connect_ssid").val();
+	pwd = $("#connect_pass").val();
+	
+	// Create an object to hold the data to be sent in the request body
+	var requestData = {
+	  'selectedSSID': selectedSSID,
+	  'pwd': pwd,
+	  'timestamp': Date.now()
+	};
+	
+	// Serialize the data object to JSON
+	var requestDataJSON = JSON.stringify(requestData);
+	
+	$.ajax({
+	  url: '/wifiConnect.json',
+	  dataType: 'json',
+	  method: 'POST',
+	  cache: false,
+	  data: requestDataJSON, // Send the JSON data in the request body
+	  contentType: 'application/json', // Set the content type to JSON
+	  success: function(response) {
+		// Handle the success response from the server
+		console.log(response);
+	  },
+	  error: function(xhr, status, error) {
+		// Handle errors
+		console.error(xhr.responseText);
+	  }
+	});
+
+
+	//startWifiConnectStatusInterval();
 }
 
-function startClock() {
-	setInterval(function () {
-		var now = new Date();
-		var hours = now.getHours().toString().padStart(2, '0');
-		var minutes = now.getMinutes().toString().padStart(2, '0');
-		var seconds = now.getSeconds().toString().padStart(2, '0');
+/**
+ * Checks credentials on connect_wifi button click.
+ */
+function checkCredentials()
+{
+	errorList = "";
+	credsOk = true;
+	
+	selectedSSID = $("#connect_ssid").val();
+	pwd = $("#connect_pass").val();
+	
+	if (selectedSSID == "")
+	{
+		errorList += "<h4 class='rd'>SSID cannot be empty!</h4>";
+		credsOk = false;
+	}
+	if (pwd == "")
+	{
+		errorList += "<h4 class='rd'>Password cannot be empty!</h4>";
+		credsOk = false;
+	}
+	
+	if (credsOk == false)
+	{
+		$("#wifi_connect_credentials_errors").html(errorList);
+	}
+	else
+	{
+		$("#wifi_connect_credentials_errors").html("");
+		connectWifi();    
+	}
+}
 
-		$("#clock").text(hours + ":" + minutes + ":" + seconds);
-	}, 1000);
+/**
+ * Shows the WiFi password if the box is checked.
+ */
+function showPassword()
+{
+	var x = document.getElementById("connect_pass");
+	if (x.type === "password")
+	{
+		x.type = "text";
+	}
+	else
+	{
+		x.type = "password";
+	}
 }
 
 
-function turn_off_uart()
+function send_register()
+{
+    // Assuming you have selectedNumber, hours, minutes variables populated from your form
+    selectedNumber = $("#selectNumber").val();
+    hours = $("#hours").val();
+    minutes = $("#minutes").val();
+    
+    // Create an array for selected days
+    var selectedDays = [];
+    if ($("#day_mon").prop("checked")) selectedDays.push("1");
+	else selectedDays.push("0");
+    if ($("#day_tue").prop("checked")) selectedDays.push("1");
+	else selectedDays.push("0");
+    if ($("#day_wed").prop("checked")) selectedDays.push("1");
+	else selectedDays.push("0");
+    if ($("#day_thu").prop("checked")) selectedDays.push("1");
+	else selectedDays.push("0");
+    if ($("#day_fri").prop("checked")) selectedDays.push("1");
+	else selectedDays.push("0");
+    if ($("#day_sat").prop("checked")) selectedDays.push("1");
+	else selectedDays.push("0");
+    if ($("#day_sun").prop("checked")) selectedDays.push("1");
+	else selectedDays.push("0");
+
+    // Create an object to hold the data to be sent in the request body
+    var requestData = {
+        'selectedNumber': selectedNumber,
+        'hours': hours,
+        'minutes': minutes,
+        'selectedDays': selectedDays,
+        'timestamp': Date.now()
+    };
+
+    // Serialize the data object to JSON
+    var requestDataJSON = JSON.stringify(requestData);
+
+	$.ajax({
+		url: '/regchange.json',
+		dataType: 'json',
+		method: 'POST',
+		cache: false,
+		data: requestDataJSON, // Send the JSON data in the request body
+		contentType: 'application/json', // Set the content type to JSON
+		success: function(response) {
+		  // Handle the success response from the server
+		  console.log(response);
+		},
+		error: function(xhr, status, error) {
+		  // Handle errors
+		  console.error(xhr.responseText);
+		}
+	  });
+
+    // Print the resulting JSON to the console (for testing)
+    //console.log(requestDataJSON);
+}
+
+/**
+ * toogle led function.
+ */
+function read_reg()
 {
 
 	
 	$.ajax({
-		url: '/uart_off.json',
+		url: '/readreg.json',
 		dataType: 'json',
 		method: 'POST',
 		cache: false,
@@ -255,44 +389,64 @@ function turn_off_uart()
 }
 
 
-/**
- * toogle led function.
- */
-function toogle_led()
+function erase_register()
 {
+    // Assuming you have selectedNumber, hours, minutes variables populated from your form
+    selectedNumber = $("#selectNumber").val();
 
-	
+
+
+    // Create an object to hold the data to be sent in the request body
+    var requestData = {
+        'selectedNumber': selectedNumber,
+        'timestamp': Date.now()
+    };
+
+    // Serialize the data object to JSON
+    var requestDataJSON = JSON.stringify(requestData);
+
+	$.ajax({
+		url: '/regchange.json',
+		dataType: 'json',
+		method: 'POST',
+		cache: false,
+		data: requestDataJSON, // Send the JSON data in the request body
+		contentType: 'application/json', // Set the content type to JSON
+		success: function(response) {
+		  // Handle the success response from the server
+		  console.log(response);
+		},
+		error: function(xhr, status, error) {
+		  // Handle errors
+		  console.error(xhr.responseText);
+		}
+	  });
+
+    // Print the resulting JSON to the console (for testing)
+    //console.log(requestDataJSON);
+}
+
+function toogle_led() 
+{	
 	$.ajax({
 		url: '/toogle_led.json',
 		dataType: 'json',
 		method: 'POST',
 		cache: false,
 	});
-//	var xhr = new XMLHttpRequest();
-//	xhr.open("POST", "/toogle_led.json");
-//	xhr.setRequestHeader("Content-Type", "application/json");
-//	xhr.send(JSON.stringify({data: "mi información"}));
+
 }
 
-/*
-function activate_listener( used_id ){
-	
-	const myInput = document.getElementById( used_id );
-
-	myInput.addEventListener('input', () => {
-	if (myInput.value > 255) {
-		myInput.value = 255;
-	}
-	if (!Number.isInteger(Number(myInput.value))) {
-		myInput.value = Math.floor(Number(myInput.value));
-	}
+function brigthness_up() 
+{	
+	$.ajax({
+		url: '/toogle_led.json',
+		dataType: 'json',
+		method: 'POST',
+		cache: false,
 	});
+
 }
-
-
-*/
-
-
 
 
 
