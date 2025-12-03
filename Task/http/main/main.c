@@ -6,6 +6,10 @@
 // #include "http_server.h"
 #include "wifi_app.h"
 #include "driver/gpio.h"
+#include "fan_control.h"
+#include "sensor_app.h"
+#include "config_app.h"
+#include "logic_app.h"
 
 #define BLINK_GPIO 2
 
@@ -29,6 +33,12 @@ void app_main(void)
 
 	// Start Wifi
 	init_obtain_time();
+	sensor_app_init();
+	fan_control_init();
+	fan_set_pwm(0); // Apagado por defecto
+	config_app_init();
+	logic_app_start();
 	configure_led();
 	wifi_app_start();
+	
 }

@@ -1,4 +1,4 @@
-idf_component_register(SRCS "main.c" "rgb_led.c" "wifi_app.c" "http_server.c" "sensor_app.c" "owb.c" "owb_rmt.c" "ds18b20.c"
+idf_component_register(SRCS "main.c" "rgb_led.c" "wifi_app.c" "http_server.c" "sensor_app.c" "owb.c" "owb_rmt.c" "ds18b20.c" "fan_control.c" "config_app.c" "logic_app.c"
                     PRIV_REQUIRES driver esp_wifi nvs_flash driver esp_http_server esp_timer app_update json mqtt freertos
 
                     INCLUDE_DIRS "."
