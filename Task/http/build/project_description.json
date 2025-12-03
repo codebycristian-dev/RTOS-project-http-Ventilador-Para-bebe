@@ -1,7 +1,7 @@
 {
     "version":            "1.1",
     "project_name":       "http",
-    "project_version":    "bd6d4a37-dirty",
+    "project_version":    "64b45555-dirty",
     "project_path":       "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http",
     "idf_path":           "C:/Espressif/frameworks/esp-idf-v5.3.1",
     "build_dir":          "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/build",
@@ -1176,11 +1176,11 @@
             "type": "LIBRARY",
             "lib": "__idf_main",
             "reqs": [],
-            "priv_reqs": [ "esp_wifi", "nvs_flash", "driver", "esp_http_server", "esp_timer", "app_update", "json", "mqtt" ],
+            "priv_reqs": [ "driver", "esp_wifi", "nvs_flash", "esp_http_server", "esp_timer", "app_update", "json", "mqtt", "freertos" ],
             "managed_reqs": [],
             "managed_priv_reqs": [],
             "file": "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/build/esp-idf/main/libmain.a",
-            "sources": [ "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/main.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/rgb_led.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/wifi_app.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/http_server.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/build/app.css.S", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/build/app.js.S", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/build/favicon.ico.S", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/build/index.html.S", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/build/jquery-3.3.1.min.js.S" ],
+            "sources": [ "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/main.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/rgb_led.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/wifi_app.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/http_server.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/sensor_app.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/owb.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/owb_rmt.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/ds18b20.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/build/app.css.S", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/build/app.js.S", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/build/favicon.ico.S", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/build/index.html.S", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/build/jquery-3.3.1.min.js.S" ],
             "include_dirs": [ "." ]
         },
         "mbedtls": {
@@ -2788,7 +2788,7 @@
             "dir": "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main",
             "lib": "__idf_main",
             "reqs": [],
-            "priv_reqs": [ "esp_wifi", "nvs_flash", "driver", "esp_http_server", "esp_timer", "app_update", "json", "mqtt" ],
+            "priv_reqs": [ "driver", "esp_wifi", "nvs_flash", "esp_http_server", "esp_timer", "app_update", "json", "mqtt", "freertos" ],
             "managed_reqs": [],
             "managed_priv_reqs": [],
             "include_dirs": [ "." ]
