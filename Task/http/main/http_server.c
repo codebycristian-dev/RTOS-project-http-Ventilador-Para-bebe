@@ -40,6 +40,10 @@
 #include "esp_log.h"
 #include "mqtt_client.h"
 #include "esp_sntp.h"
+#include "fan_control.h"
+#include "config_app.h"
+#include "sensor_app.h"
+#include "logic_app.h"
 
 // Tag used for ESP serial console messages
 static const char TAG[] = "http_server";
@@ -1022,6 +1026,140 @@ static esp_err_t http_server_wifi_connect_json_handler(httpd_req_t *req)
 
     return ESP_OK;
 }
+static esp_err_t fan_get_state_handler(httpd_req_t *req)
+{
+    fan_config_t *cfg = config_app();
+
+    float temp = sensor_get_temperature();
+    bool presence = sensor_get_presence();
+    int pwm = fan_get_current_pwm();
+
+    char response[512];
+    snprintf(response, sizeof(response),
+             "{"
+             "\"mode\": %d,"
+             "\"temperature\": %.2f,"
+             "\"presence\": %d,"
+             "\"pwm\": %d,"
+             "\"Tmin\": %.2f,"
+             "\"Tmax\": %.2f"
+             "}",
+             cfg->mode, temp, presence, pwm, cfg->Tmin, cfg->Tmax);
+
+    httpd_resp_set_type(req, "application/json");
+    return httpd_resp_sendstr(req, response);
+}
+static esp_err_t fan_set_mode_handler(httpd_req_t *req)
+{
+    char buf[64];
+    int len = httpd_req_recv(req, buf, sizeof(buf));
+    if (len <= 0)
+        return ESP_FAIL;
+
+    int mode = atoi(buf);
+
+    fan_config_t *cfg = config_app();
+    cfg->mode = mode;
+
+    config_app_save();
+
+    httpd_resp_sendstr(req, "OK");
+    return ESP_OK;
+}
+static esp_err_t fan_set_manual_pwm_handler(httpd_req_t *req)
+{
+    char buf[64];
+    int len = httpd_req_recv(req, buf, sizeof(buf));
+    if (len <= 0)
+        return ESP_FAIL;
+
+    int pwm = atoi(buf);
+
+    fan_config_t *cfg = config_app();
+    cfg->pwm_manual = pwm;
+
+    config_app_save();
+
+    httpd_resp_sendstr(req, "OK");
+    return ESP_OK;
+}
+static esp_err_t fan_set_auto_handler(httpd_req_t *req)
+{
+    char buf[128];
+    int len = httpd_req_recv(req, buf, sizeof(buf));
+    if (len <= 0)
+        return ESP_FAIL;
+
+    float Tmin = 0, Tmax = 0;
+    sscanf(buf, "%f %f", &Tmin, &Tmax);
+
+    fan_config_t *cfg = config_app();
+    cfg->Tmin = Tmin;
+    cfg->Tmax = Tmax;
+
+    config_app_save();
+
+    httpd_resp_sendstr(req, "OK");
+    return ESP_OK;
+}
+static esp_err_t fan_get_register_handler(httpd_req_t *req)
+{
+    char param[8];
+    if (httpd_req_get_url_query_str(req, param, sizeof(param)) != ESP_OK)
+        return ESP_FAIL;
+
+    char val[4];
+    httpd_query_key_value(param, "id", val, sizeof(val));
+    int id = atoi(val);
+
+    fan_register_t *r = &config_app()->reg[id];
+
+    char response[256];
+    snprintf(response, sizeof(response),
+             "{"
+             "\"active\": %d,"
+             "\"hour_start\": %d,"
+             "\"min_start\": %d,"
+             "\"hour_end\": %d,"
+             "\"min_end\": %d,"
+             "\"temp0\": %.2f,"
+             "\"temp100\": %.2f"
+             "}",
+             r->active, r->hour_start, r->min_start,
+             r->hour_end, r->min_end,
+             r->temp0, r->temp100);
+
+    httpd_resp_set_type(req, "application/json");
+    return httpd_resp_sendstr(req, response);
+}
+static esp_err_t fan_set_register_handler(httpd_req_t *req)
+{
+    char buf[256];
+    int len = httpd_req_recv(req, buf, sizeof(buf));
+    if (len <= 0)
+        return ESP_FAIL;
+
+    int id, active, hs, ms, he, me;
+    float t0, t100;
+
+    sscanf(buf, "%d %d %d %d %d %d %f %f",
+           &id, &active, &hs, &ms, &he, &me, &t0, &t100);
+
+    fan_register_t *r = &config_app()->reg[id];
+
+    r->active = active;
+    r->hour_start = hs;
+    r->min_start = ms;
+    r->hour_end = he;
+    r->min_end = me;
+    r->temp0 = t0;
+    r->temp100 = t100;
+
+    config_app_save();
+
+    httpd_resp_sendstr(req, "OK");
+    return ESP_OK;
+}
 
 /**
  * wifiConnectStatus handler updates the connection status for the web page.
@@ -1191,6 +1329,42 @@ static httpd_handle_t http_server_configure(void)
             .handler = http_server_read_register_handler,
             .user_ctx = NULL};
         httpd_register_uri_handler(http_server_handle, &read_range_uri);
+        httpd_uri_t fan_get_state = {
+            .uri = "/fan/get_state.json",
+            .method = HTTP_GET,
+            .handler = fan_get_state_handler};
+
+        httpd_uri_t fan_set_mode = {
+            .uri = "/fan/set_mode.json",
+            .method = HTTP_POST,
+            .handler = fan_set_mode_handler};
+
+        httpd_uri_t fan_set_manual_pwm = {
+            .uri = "/fan/set_manual_pwm.json",
+            .method = HTTP_POST,
+            .handler = fan_set_manual_pwm_handler};
+
+        httpd_uri_t fan_set_auto = {
+            .uri = "/fan/set_auto.json",
+            .method = HTTP_POST,
+            .handler = fan_set_auto_handler};
+
+        httpd_uri_t fan_get_register = {
+            .uri = "/fan/get_register.json",
+            .method = HTTP_GET,
+            .handler = fan_get_register_handler};
+
+        httpd_uri_t fan_set_register = {
+            .uri = "/fan/set_register.json",
+            .method = HTTP_POST,
+            .handler = fan_set_register_handler};
+
+        httpd_register_uri_handler(http_server_handle, &fan_get_state);
+        httpd_register_uri_handler(http_server_handle, &fan_set_mode);
+        httpd_register_uri_handler(http_server_handle, &fan_set_manual_pwm);
+        httpd_register_uri_handler(http_server_handle, &fan_set_auto);
+        httpd_register_uri_handler(http_server_handle, &fan_get_register);
+        httpd_register_uri_handler(http_server_handle, &fan_set_register);
 
         return http_server_handle;
     }
