@@ -1015,8 +1015,7 @@ static esp_err_t http_server_wifi_connect_json_handler(httpd_req_t *req)
     memcpy(wifi_config->sta.password, pass_str, strlen(pass_str));
     save_wifi_credentials(ssid_str, pass_str);
     esp_wifi_disconnect();
-    // wifi_app_send_message(WIFI_APP_MSG_CONNECTING_FROM_HTTP_SERVER); // if doesn't work this need to be checked
-    connect_to_wifi();
+    wifi_app_send_message(WIFI_APP_MSG_CONNECTING_FROM_HTTP_SERVER); // if doesn't work this need to be checked
 
     free(ssid_str);
     free(pass_str);

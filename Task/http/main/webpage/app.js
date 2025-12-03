@@ -257,7 +257,7 @@ function connectWifi()
 	});
 
 
-	//startWifiConnectStatusInterval();
+	startWifiConnectStatusInterval();
 }
 
 /**
