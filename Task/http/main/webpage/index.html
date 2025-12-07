@@ -66,19 +66,63 @@
                     <div class="status" id="wifi_connect_status"></div>
                 </div>
             </section>
-
-            <section class="card" id="DHT22Sensor">
-                <div class="card__header">
-                    <p class="eyebrow">Sensores</p>
-                    <h2>Temperature Reading</h2>
+            <!-- ====================== -->
+            <!--   VENTILADOR INTELIGENTE  -->
+            <!-- ====================== -->
+            
+            <div class="section-block">
+                <h2 class="section-title">Ventilador Inteligente</h2>
+            
+                <!-- Estado del ventilador -->
+                <div class="card">
+                    <h3 class="card-title">Estado actual</h3>
+                    <p>Temperatura: <span id="fan_temp">--</span> °C</p>
+                    <p>Presencia: <span id="fan_presence">--</span></p>
+                    <p>PWM actual: <span id="fan_pwm">--</span>%</p>
                 </div>
-                <div class="card__content">
-                    <div class="metric">
-                        <span class="metric__label">Temperature</span>
-                        <span class="metric__value" id="temperature_reading">--</span>
+            
+                <!-- Selector de modo -->
+                <div class="card">
+                    <h3 class="card-title">Modo de funcionamiento</h3>
+            
+                    <div class="segmented-control">
+                        <button class="segment" id="mode_manual" onclick="setFanMode(0)">Manual</button>
+                        <button class="segment" id="mode_auto" onclick="setFanMode(1)">Automático</button>
+                        <button class="segment" id="mode_program" onclick="setFanMode(2)">Programado</button>
                     </div>
                 </div>
-            </section>
+            
+                <!-- ===== MODO MANUAL ===== -->
+                <div class="card" id="card_manual" style="display:none;">
+                    <h3 class="card-title">Velocidad manual</h3>
+                    <input type="range" id="manual_pwm" min="0" max="100" value="0" oninput="updateManualLabel()">
+                    <p>Velocidad: <span id="manual_pwm_label">0</span>%</p>
+            
+                    <button onclick="saveManualPWM()" class="btn-primary">Guardar</button>
+                </div>
+            
+                <!-- ===== MODO AUTOMÁTICO ===== -->
+                <div class="card" id="card_auto" style="display:none;">
+                    <h3 class="card-title">Configuración automática</h3>
+            
+                    <p>Tmin (0% PWM)</p>
+                    <input type="number" id="auto_tmin" step="0.1" oninput="autoLocalTmin = this.value">
+    
+                    <p>Tmax (100% PWM)</p>
+                    <input type="number" id="auto_tmax" step="0.1" oninput="autoLocalTmax = this.value">
+            
+                    <button onclick="saveAutoConfig()" class="btn-primary">Guardar</button>
+                </div>
+            
+                <!-- ===== MODO PROGRAMADO ===== -->
+                <div class="card" id="card_program" style="display:none;">
+                    <h3 class="card-title">Registros programados</h3>
+            
+                    <div id="program_blocks"></div>
+            
+                    <button onclick="loadRegisters()" class="btn-secondary">Recargar registros</button>
+                </div>
+            </div>
 
             <section class="card" id="Configreading">
                 <div class="card__header">

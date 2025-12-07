@@ -381,6 +381,7 @@ void load_wifi_credentials(char *ssid, char *password)
 	// Get the size of wifi_ssid
 	ESP_ERROR_CHECK(nvs_get_str(nvs_handle, "wifi_ssid", NULL, &required_size));
 	// Allocate memory for wifi_ssid
+	//here cambio de mejora ssid 
 	char *ssid_buffer = malloc(required_size);
 	if (ssid_buffer == NULL)
 	{

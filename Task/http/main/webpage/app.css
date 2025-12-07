@@ -254,3 +254,47 @@ select:focus {
     .actions { width: 100%; }
     .actions .btn { flex: 1 1 auto; text-align: center; }
 }
+.segment-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+
+.segment {
+    flex: 1;
+    padding: 10px;
+    margin: 3px;
+    background: #f1f1f1;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+}
+
+.segment.active {
+    background: #007aff;
+    color: white;
+    border-color: #007aff;
+}
+
+.inner-card {
+    background: #fafafa;
+    padding: 15px;
+    border-radius: 15px;
+    margin-top: 15px;
+}
+.segment {
+    width: 100%;
+    margin: 6px 0;
+    padding: 12px;
+    background: #f2f2f7;
+    border-radius: 12px;
+    border: 1px solid #d1d1d6;
+    text-align: center;
+    font-size: 15px;
+}
+
+.segment.active {
+    background: #007aff;
+    border-color: #007aff;
+    color: white;
+    font-weight: bold;
+}

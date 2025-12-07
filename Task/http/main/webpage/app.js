@@ -447,6 +447,235 @@ function brigthness_up()
 	});
 
 }
+/* ============================================================
+   VENTILADOR INTELIGENTE - APP.JS (Opción B estilo tarjetas)
+   ============================================================ */
+
+let fanStateInterval = null;
+
+// ============================================================
+// ACTUALIZAR UI SEGÚN MODO
+// ============================================================
+function updateFanModeUI(mode) {
+	const modes = ["mode_manual", "mode_auto", "mode_program"];
+
+	modes.forEach((id, index) => {
+		let btn = document.getElementById(id);
+		if (index === mode) {
+			btn.classList.add("active");
+		} else {
+			btn.classList.remove("active");
+		}
+	});
+
+	// Mostrar/Ocultar tarjetas según modo
+	document.getElementById("card_manual").style.display =
+		mode === 0 ? "block" : "none";
+	document.getElementById("card_auto").style.display =
+		mode === 1 ? "block" : "none";
+	document.getElementById("card_program").style.display =
+		mode === 2 ? "block" : "none";
+}
+
+// ============================================================
+// OBTENER ESTADO DEL VENTILADOR
+// ============================================================
+let autoLocalTmin = null;
+let autoLocalTmax = null;
+function loadFanState() {
+	fetch("/fan/get_state.json")
+		.then(response => response.json())
+		.then(data => {
+
+			// Datos rápidos
+			document.getElementById("fan_temp").innerText = data.temperature.toFixed(1);
+			document.getElementById("fan_presence").innerText = data.presence ? "Sí" : "No";
+			document.getElementById("fan_pwm").innerText = data.pwm;
+
+			// Modo
+			updateFanModeUI(data.mode);
+
+			// Auto config
+			if (autoLocalTmin === null) {
+				document.getElementById("auto_tmin").value = data.Tmin;
+			}
+
+			// Solo actualizar Tmax si NO hay un valor local pendiente
+			if (autoLocalTmax === null) {
+				document.getElementById("auto_tmax").value = data.Tmax;
+			}
+
+
+		})
+		.catch(err => console.log("Error obteniendo estado:", err));
+}
+
+// ============================================================
+// CAMBIAR MODO DEL VENTILADOR
+// ============================================================
+function setFanMode(mode) {
+	fetch("/fan/set_mode.json", {
+		method: "POST",
+		body: mode.toString(),
+	})
+		.then(() => {
+			console.log("Modo cambiado:", mode);
+			loadFanState();
+		})
+		.catch(err => console.log("Error cambiando modo:", err));
+}
+
+// ============================================================
+// MODO MANUAL: SLIDER
+// ============================================================
+function updateManualLabel() {
+	let val = document.getElementById("manual_pwm").value;
+	document.getElementById("manual_pwm_label").innerText = val;
+}
+
+function saveManualPWM() {
+	let value = document.getElementById("manual_pwm").value;
+
+	fetch("/fan/set_manual_pwm.json", {
+		method: "POST",
+		body: value.toString(),
+	})
+		.then(() => {
+			console.log("PWM manual guardado:", value);
+			loadFanState();
+		});
+}
+
+// ============================================================
+// MODO AUTOMÁTICO (Tmin / Tmax)
+// ============================================================
+
+function saveAutoConfig() {
+	let Tmin_str = document.getElementById("auto_tmin").value;
+	let Tmax_str = document.getElementById("auto_tmax").value;
+
+	// Validación: campos no pueden estar vacíos
+	if (Tmin_str.trim() === "" || Tmax_str.trim() === "") {
+		alert("Debes ingresar valores válidos de Tmin y Tmax.");
+		return;
+	}
+
+	let Tmin = parseFloat(Tmin_str);
+	let Tmax = parseFloat(Tmax_str);
+
+	// Validación numérica
+	if (isNaN(Tmin) || isNaN(Tmax)) {
+		alert("Los valores deben ser numéricos.");
+		return;
+	}
+
+	// Validación lógica
+	if (Tmin >= Tmax) {
+		alert("Tmin debe ser menor que Tmax.");
+		return;
+	}
+
+	let json = JSON.stringify({ Tmin: Tmin, Tmax: Tmax });
+
+	fetch("/fan/set_auto.json", {
+		method: "POST",
+		headers: {"Content-Type": "application/json"},
+		body: json
+	})
+		.then(() => {
+			console.log("Auto-config guardada");
+			autoLocalTmin = null;
+			autoLocalTmax = null;	
+			loadFanState();
+		});
+}
+
+
+// ============================================================
+// REGISTROS PROGRAMADOS
+// ============================================================
+function createRegisterCard(id, reg) {
+	return `
+    <div class="card inner-card">
+        <h4>Registro ${id + 1}</h4>
+
+        <label>Activo:
+            <input type="checkbox" id="reg${id}_active" ${reg.active ? "checked" : ""}>
+        </label>
+
+        <label>Hora inicio:</label>
+        <input type="time" id="reg${id}_start" value="${reg.hour_start.toString().padStart(2, "0")}:${reg.min_start.toString().padStart(2, "0")}">
+
+        <label>Hora fin:</label>
+        <input type="time" id="reg${id}_end" value="${reg.hour_end.toString().padStart(2, "0")}:${reg.min_end.toString().padStart(2, "0")}">
+
+        <label>T0% (°C):</label>
+        <input type="number" id="reg${id}_t0" step="0.1" value="${reg.temp0}">
+
+        <label>T100% (°C):</label>
+        <input type="number" id="reg${id}_t100" step="0.1" value="${reg.temp100}">
+
+        <button class="btn primary" onclick="saveRegister(${id})">Guardar</button>
+    </div>
+    `;
+}
+
+function loadRegisters() {
+	let container = document.getElementById("program_list");
+	container.innerHTML = "";
+
+	for (let i = 0; i < 3; i++) {
+		fetch(`/fan/get_register.json?id=${i}`)
+			.then(res => res.json())
+			.then(reg => {
+				container.innerHTML += createRegisterCard(i, reg);
+			});
+	}
+}
+
+function saveRegister(id) {
+	let active = document.getElementById(`reg${id}_active`).checked ? 1 : 0;
+
+	let [hs, ms] = document.getElementById(`reg${id}_start`).value.split(":");
+	let [he, me] = document.getElementById(`reg${id}_end`).value.split(":");
+
+	let t0 = document.getElementById(`reg${id}_t0`).value;
+	let t100 = document.getElementById(`reg${id}_t100`).value;
+
+	let json = JSON.stringify({
+		id: id,
+		active: active,
+		hour_start: parseInt(hs),
+		min_start: parseInt(ms),
+		hour_end: parseInt(he),
+		min_end: parseInt(me),
+		temp0: parseFloat(t0),
+		temp100: parseFloat(t100)
+	});
+
+	fetch("/fan/set_register.json", {
+		method: "POST",
+		body: json
+	}).then(() => {
+		console.log("Registro guardado:", id);
+	});
+}
+
+// ============================================================
+// INICIO AUTOMÁTICO
+// ============================================================
+function startFanStateInterval() {
+	if (fanStateInterval) clearInterval(fanStateInterval);
+
+	fanStateInterval = setInterval(loadFanState, 1000);
+}
+
+// Llamamos al iniciar la página
+window.addEventListener("load", () => {
+	loadFanState();
+	startFanStateInterval();
+	loadRegisters();
+});
 
 
 

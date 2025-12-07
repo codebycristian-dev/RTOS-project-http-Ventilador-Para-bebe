@@ -1086,12 +1086,35 @@ static esp_err_t fan_set_manual_pwm_handler(httpd_req_t *req)
 static esp_err_t fan_set_auto_handler(httpd_req_t *req)
 {
     char buf[128];
-    int len = httpd_req_recv(req, buf, sizeof(buf));
+    int len = httpd_req_recv(req, buf, sizeof(buf) - 1);
     if (len <= 0)
         return ESP_FAIL;
 
-    float Tmin = 0, Tmax = 0;
-    sscanf(buf, "%f %f", &Tmin, &Tmax);
+    buf[len] = '\0'; // Cerrar string
+
+    // Parsear JSON correctamente
+    cJSON *root = cJSON_Parse(buf);
+    if (!root)
+        return ESP_FAIL;
+
+    cJSON *jTmin = cJSON_GetObjectItem(root, "Tmin");
+    cJSON *jTmax = cJSON_GetObjectItem(root, "Tmax");
+
+    if (!jTmin || !jTmax)
+    {
+        cJSON_Delete(root);
+        return ESP_FAIL;
+    }
+
+    float Tmin = jTmin->valuedouble;
+    float Tmax = jTmax->valuedouble;
+
+    cJSON_Delete(root);
+
+    if (Tmin <= 0 || Tmax <= 0 || Tmin >= Tmax){
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST,"Valores invalidos");
+        return ESP_FAIL;
+    }
 
     fan_config_t *cfg = config_app();
     cfg->Tmin = Tmin;
@@ -1102,6 +1125,7 @@ static esp_err_t fan_set_auto_handler(httpd_req_t *req)
     httpd_resp_sendstr(req, "OK");
     return ESP_OK;
 }
+
 static esp_err_t fan_get_register_handler(httpd_req_t *req)
 {
     char param[8];

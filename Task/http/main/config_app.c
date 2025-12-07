@@ -63,10 +63,21 @@ void config_app_init(void)
     }
 
     // --------- AUTO Tmin / Tmax ---------
-    if (nvs_get_blob(h, "tmin", &cfg.Tmin, NULL) != ESP_OK)
-        cfg.Tmin = 24.0;
-    if (nvs_get_blob(h, "tmax", &cfg.Tmax, NULL) != ESP_OK)
-        cfg.Tmax = 30.0;
+    // ----- Cargar Tmin -----
+    size_t size = sizeof(float);
+    err = nvs_get_blob(h, "tmin", &cfg.Tmin, &size);
+    if (err != ESP_OK)
+    {
+        cfg.Tmin = 24.0f; // Valor por defecto
+    }
+
+    // ----- Cargar Tmax -----
+    size = sizeof(float);
+    err = nvs_get_blob(h, "tmax", &cfg.Tmax, &size);
+    if (err != ESP_OK)
+    {
+        cfg.Tmax = 30.0f; // Valor por defecto
+    }
 
     // --------- REGISTROS 1..3 ---------
     load_register(h, "reg1", &cfg.reg[0]);
