@@ -617,158 +617,75 @@ esp_err_t http_server_OTA_status_handler(httpd_req_t *req)
 
 static esp_err_t http_server_register_change_handler(httpd_req_t *req)
 {
-    size_t header_len;
-    char *header_value;
-    char *hour_str = NULL;
-    char *reg_str = NULL;
-    char *min_str = NULL;
-    char *days = NULL;
-    int content_length;
-
     ESP_LOGI(TAG, "/regchange.json requested");
 
-    // Get the "Content-Length" header to determine the length of the request body
-    header_len = httpd_req_get_hdr_value_len(req, "Content-Length");
-    if (header_len <= 0)
+    // Leer body
+    char buf[256];
+    int len = httpd_req_recv(req, buf, sizeof(buf) - 1);
+    if (len <= 0)
+        return ESP_FAIL;
+
+    buf[len] = '\0';
+
+    cJSON *root = cJSON_Parse(buf);
+    if (!root)
     {
-        // Content-Length header not found or invalid
-        // httpd_resp_send_err(req, HTTP_STATUS_411_LENGTH_REQUIRED, "Content-Length header is missing or invalid");
-        ESP_LOGI(TAG, "Content-Length header is missing or invalid");
+        ESP_LOGE(TAG, "JSON inválido");
         return ESP_FAIL;
     }
 
-    // Allocate memory to store the header value
-    header_value = (char *)malloc(header_len + 1);
-    if (httpd_req_get_hdr_value_str(req, "Content-Length", header_value, header_len + 1) != ESP_OK)
+    // Campos obligatorios
+    cJSON *id_json = cJSON_GetObjectItem(root, "id");
+    cJSON *active_json = cJSON_GetObjectItem(root, "active");
+    cJSON *hs_json = cJSON_GetObjectItem(root, "hour_start");
+    cJSON *ms_json = cJSON_GetObjectItem(root, "min_start");
+    cJSON *he_json = cJSON_GetObjectItem(root, "hour_end");
+    cJSON *me_json = cJSON_GetObjectItem(root, "min_end");
+    cJSON *t0_json = cJSON_GetObjectItem(root, "temp0");
+    cJSON *t100_json = cJSON_GetObjectItem(root, "temp100");
+    cJSON *days_json = cJSON_GetObjectItem(root, "days");
+
+    if (!id_json || !cJSON_IsNumber(id_json) ||
+        !active_json || !cJSON_IsBool(active_json) ||
+        !hs_json || !cJSON_IsNumber(hs_json) ||
+        !ms_json || !cJSON_IsNumber(ms_json) ||
+        !he_json || !cJSON_IsNumber(he_json) ||
+        !me_json || !cJSON_IsNumber(me_json) ||
+        !t0_json || !cJSON_IsNumber(t0_json) ||
+        !t100_json || !cJSON_IsNumber(t100_json) ||
+        !days_json || !cJSON_IsNumber(days_json))
     {
-        // Failed to get Content-Length header value
-        free(header_value);
-        // httpd_resp_send_err(req, HTTP_STATUS_BAD_REQUEST, "Failed to get Content-Length header value");
-        ESP_LOGI(TAG, "Failed to get Content-Length header value");
-        return ESP_FAIL;
-    }
-
-    // Convert the Content-Length header value to an integer
-    content_length = atoi(header_value);
-    free(header_value);
-
-    if (content_length <= 0)
-    {
-        // Content length is not a valid positive integer
-        // httpd_resp_send_err(req, HTTP_STATUS_BAD_REQUEST, "Invalid Content-Length value");
-        ESP_LOGI(TAG, "Invalid Content-Length value");
-        return ESP_FAIL;
-    }
-
-    // Allocate memory for the data buffer based on the content length
-    char *data_buffer = (char *)malloc(content_length + 1);
-
-    // Read the request body into the data buffer
-    if (httpd_req_recv(req, data_buffer, content_length) <= 0)
-    {
-        // Handle error while receiving data
-        free(data_buffer);
-        // httpd_resp_send_err(req, HTTP_STATUS_INTERNAL_SERVER_ERROR, "Failed to receive request body");
-        ESP_LOGI(TAG, "Failed to receive request body");
-        return ESP_FAIL;
-    }
-
-    // Null-terminate the data buffer to treat it as a string
-    data_buffer[content_length] = '\0';
-
-    // Parse the received JSON data
-    cJSON *root = cJSON_Parse(data_buffer);
-    free(data_buffer);
-
-    if (root == NULL)
-    {
-        // JSON parsing error
-        // httpd_resp_send_err(req, HTTP_STATUS_BAD_REQUEST, "Invalid JSON data");
-        ESP_LOGI(TAG, "Invalid JSON data");
-        return ESP_FAIL;
-    }
-
-    cJSON *reg_number_json = cJSON_GetObjectItem(root, "selectedNumber");
-    cJSON *hour_json = cJSON_GetObjectItem(root, "hours");
-    cJSON *min_json = cJSON_GetObjectItem(root, "minutes");
-    cJSON *selectedDays_json = cJSON_GetObjectItem(root, "selectedDays");
-
-    if (hour_json == NULL || min_json == NULL || selectedDays_json == NULL || !cJSON_IsString(hour_json) || !cJSON_IsString(min_json) || !cJSON_IsArray(selectedDays_json))
-    {
+        ESP_LOGE(TAG, "JSON incompleto");
         cJSON_Delete(root);
-        // Missing or invalid JSON fields
-        // httpd_resp_send_err(req, HTTP_STATUS_BAD_REQUEST, "Missing or invalid JSON data fields");
-        ESP_LOGI(TAG, "Missing or invalid JSON data fields");
         return ESP_FAIL;
     }
 
-    // Extract SSID and password from JSON
-    reg_str = strdup(reg_number_json->valuestring);
-    hour_str = strdup(hour_json->valuestring);
-    min_str = strdup(min_json->valuestring);
-
-    ESP_LOGI(TAG, "Received reg: %s", reg_str);
-    ESP_LOGI(TAG, "Received hour: %s", hour_str);
-    ESP_LOGI(TAG, "Received min: %s", min_str);
-
-    char str_to_save[12];
-    // str_to_save[11]=0x00;
-    memset(str_to_save, 0x00, 12);
-
-    if (cJSON_IsArray(selectedDays_json))
+    int id = id_json->valueint - 1;
+    if (id < 0 || id >= MAX_REGISTERS)
     {
-        cJSON *day_item;
-
-        // Iterate over each element in the array
-
-        // strcat(str_to_save, reg_str);
-        strcat(str_to_save, hour_str);
-        strcat(str_to_save, min_str);
-        cJSON_ArrayForEach(day_item, selectedDays_json)
-        {
-            // Check if the array element is a string
-            if (cJSON_IsString(day_item))
-            {
-                const char *day_str = day_item->valuestring;
-                strcat(str_to_save, day_str);
-                // Perform actions with the day_str
-                printf("Selected Day: %s\n", day_str);
-            }
-        }
+        ESP_LOGE(TAG, "ID fuera de rango");
+        cJSON_Delete(root);
+        return ESP_FAIL;
     }
-    else
-    {
-        printf("SelectedDays is not an array\n");
-    }
-    printf("%s\n", str_to_save);
-    save_reg_data(atoi(reg_str), &str_to_save[0]);
-    update_register(atoi(reg_str));
-    // Process the selected days array
-    // cJSON* day_item;
-    // cJSON_ArrayForEach(day_item, selectedDays_json) {
-    // if (cJSON_IsString(day_item)) {
-    //   const char* day_str = day_item->valuestring;
-    // ESP_LOGI(TAG, "Selected Day: %s", day_str);
 
-    // Perform any additional actions based on the selected day
-    // ...
+    fan_config_t *cfg = config_app();
+    fan_register_t *r = &cfg->reg[id];
 
-    // Release memory when no longer needed
-    //}
+    r->active = active_json->valueint;
+    r->hour_start = hs_json->valueint;
+    r->min_start = ms_json->valueint;
+    r->hour_end = he_json->valueint;
+    r->min_end = me_json->valueint;
+    r->temp0 = t0_json->valuedouble;
+    r->temp100 = t100_json->valuedouble;
+    r->days = days_json->valueint;
 
-    //}
-    // free(day_item);
+    config_app_save();
 
-    // free(selectedDays_json);
+    ESP_LOGI(TAG, "Registro %d actualizado correctamente", id + 1);
 
-    // Send a success response to the client
-    // Cerrar la conexion
-    free(reg_str);
-    free(hour_str);
-    free(min_str);
+    httpd_resp_sendstr(req, "OK");
     cJSON_Delete(root);
-    httpd_resp_set_hdr(req, "Connection", "close");
-    httpd_resp_send(req, NULL, 0);
 
     return ESP_OK;
 }
@@ -1128,49 +1045,128 @@ static esp_err_t fan_set_auto_handler(httpd_req_t *req)
 
 static esp_err_t fan_get_register_handler(httpd_req_t *req)
 {
-    char param[8];
-    if (httpd_req_get_url_query_str(req, param, sizeof(param)) != ESP_OK)
+    char query[32];
+
+    // Leer la query string: "?id=1"
+    if (httpd_req_get_url_query_str(req, query, sizeof(query)) != ESP_OK)
+    {
+        ESP_LOGE(TAG, "No se pudo leer query string");
         return ESP_FAIL;
+    }
 
-    char val[4];
-    httpd_query_key_value(param, "id", val, sizeof(val));
-    int id = atoi(val);
+    char id_str[8];
+    if (httpd_query_key_value(query, "id", id_str, sizeof(id_str)) != ESP_OK)
+    {
+        ESP_LOGE(TAG, "No se encontro parametro 'id'");
+        return ESP_FAIL;
+    }
 
-    fan_register_t *r = &config_app()->reg[id];
+    int visible_id = atoi(id_str); // 1..MAX_REGISTERS desde el frontend
+    int idx = visible_id - 1;      // 0..MAX_REGISTERS-1 para el arreglo
+
+    if (idx < 0 || idx >= MAX_REGISTERS)
+    {
+        ESP_LOGE(TAG, "ID fuera de rango: %d", visible_id);
+        return ESP_FAIL;
+    }
+
+    fan_register_t *r = &config_app()->reg[idx];
 
     char response[256];
     snprintf(response, sizeof(response),
              "{"
+             "\"id\": %d,"
              "\"active\": %d,"
              "\"hour_start\": %d,"
              "\"min_start\": %d,"
              "\"hour_end\": %d,"
              "\"min_end\": %d,"
              "\"temp0\": %.2f,"
-             "\"temp100\": %.2f"
+             "\"temp100\": %.2f,"
+             "\"days\": %u"
              "}",
-             r->active, r->hour_start, r->min_start,
+             visible_id,
+             r->active,
+             r->hour_start, r->min_start,
              r->hour_end, r->min_end,
-             r->temp0, r->temp100);
+             r->temp0, r->temp100,
+             (unsigned)r->days);
 
     httpd_resp_set_type(req, "application/json");
     return httpd_resp_sendstr(req, response);
 }
+static bool intervals_overlap(int s1, int e1, int s2, int e2)
+{
+    return (s1 < e2) && (s2 < e1);
+}
 static esp_err_t fan_set_register_handler(httpd_req_t *req)
 {
     char buf[256];
-    int len = httpd_req_recv(req, buf, sizeof(buf));
+    int len = httpd_req_recv(req, buf, sizeof(buf) - 1);
     if (len <= 0)
         return ESP_FAIL;
+    buf[len] = '\0';
 
-    int id, active, hs, ms, he, me;
-    float t0, t100;
+    cJSON *root = cJSON_Parse(buf);
+    if (!root)
+        return ESP_FAIL;
 
-    sscanf(buf, "%d %d %d %d %d %d %f %f",
-           &id, &active, &hs, &ms, &he, &me, &t0, &t100);
+    int id = cJSON_GetObjectItem(root, "id")->valueint;
+    int idx = id - 1; // convertir 1..3 a 0..2
 
-    fan_register_t *r = &config_app()->reg[id];
+    if (idx < 0 || idx >= MAX_REGISTERS)
+    {
+        httpd_resp_send_err(req, 400, "ID fuera de rango");
+        cJSON_Delete(root);
+        return ESP_FAIL;
+    }
 
+    fan_config_t *cfg = config_app();
+    fan_register_t *r = &cfg->reg[idx];
+
+    int active = cJSON_GetObjectItem(root, "active")->valueint;
+    int hs = cJSON_GetObjectItem(root, "hour_start")->valueint;
+    int ms = cJSON_GetObjectItem(root, "min_start")->valueint;
+    int he = cJSON_GetObjectItem(root, "hour_end")->valueint;
+    int me = cJSON_GetObjectItem(root, "min_end")->valueint;
+    float t0 = cJSON_GetObjectItem(root, "temp0")->valuedouble;
+    float t100 = cJSON_GetObjectItem(root, "temp100")->valuedouble;
+    uint8_t days = cJSON_GetObjectItem(root, "days")->valueint;
+
+    int new_start = hs * 60 + ms;
+    int new_end = he * 60 + me;
+
+    // ============================
+    // DETECCIÓN DE CONFLICTOS
+    // ============================
+    for (int i = 0; i < MAX_REGISTERS; i++)
+    {
+        if (i == idx)
+            continue;
+
+        fan_register_t *other = &cfg->reg[i];
+
+        if (!other->active)
+            continue;
+
+        if ((other->days & days) == 0)
+            continue; // ningún día coincide
+
+        int o_start = other->hour_start * 60 + other->min_start;
+        int o_end = other->hour_end * 60 + other->min_end;
+
+        if (intervals_overlap(new_start, new_end, o_start, o_end))
+        {
+            httpd_resp_send_err(req, 409,
+                                "El horario se solapa con otro registro activo");
+            cJSON_Delete(root);
+            return ESP_FAIL;
+        }
+    }
+
+    // ============================
+    // GUARDAR
+    // ============================
     r->active = active;
     r->hour_start = hs;
     r->min_start = ms;
@@ -1178,10 +1174,12 @@ static esp_err_t fan_set_register_handler(httpd_req_t *req)
     r->min_end = me;
     r->temp0 = t0;
     r->temp100 = t100;
+    r->days = days;
 
     config_app_save();
 
     httpd_resp_sendstr(req, "OK");
+    cJSON_Delete(root);
     return ESP_OK;
 }
 

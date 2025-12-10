@@ -6,7 +6,7 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-
+#include <time.h>
 static const char *TAG = "logic_app";
 
 // Convertir temperatura en PWM proporcional
@@ -35,6 +35,28 @@ static bool time_in_range(int current, int start, int end)
         return (current >= start || current <= end); // cruza medianoche
 }
 
+// Obtiene el día de la semana y hora actual
+static void get_time_now(int *weekday, int *hour, int *minute)
+{
+    time_t now;
+    struct tm t;
+    time(&now);
+    localtime_r(&now, &t);
+
+    // tm_wday: 0=domingo, 1=lunes ... 6=sábado
+    *weekday = t.tm_wday;
+    if (*weekday == 0)
+        *weekday = 7; // hacemos domingo = 7
+
+    *hour = t.tm_hour;
+    *minute = t.tm_min;
+}
+
+static bool is_day_active(uint8_t days_mask, int weekday)
+{
+    return (days_mask >> (weekday - 1)) & 1;
+}
+
 static void logic_task(void *pv)
 {
     ESP_LOGI(TAG, "Iniciando tarea lógica del ventilador...");
@@ -45,16 +67,21 @@ static void logic_task(void *pv)
 
         float temp = sensor_get_temperature();
         bool presence = sensor_get_presence();
-        int minutes = sensor_get_minutes();
 
         int pwm = 0;
 
         switch (cfg->mode)
         {
+        /* ==========================
+           MODO MANUAL
+           ========================== */
         case FAN_MODE_MANUAL:
             pwm = cfg->pwm_manual;
             break;
 
+        /* ==========================
+           MODO AUTO
+           ========================== */
         case FAN_MODE_AUTO:
             if (!presence)
             {
@@ -64,40 +91,74 @@ static void logic_task(void *pv)
             pwm = pwm_from_temperature(temp, cfg->Tmin, cfg->Tmax);
             break;
 
+        /* ==========================
+           MODO PROGRAMADO
+           ========================== */
         case FAN_MODE_PROGRAMMED:
-            if (!presence)
-            {
-                pwm = 0;
-                break;
-            }
+        {
+            int weekday, hour_now, minute_now;
+            get_time_now(&weekday, &hour_now, &minute_now);
 
+            ESP_LOGI(TAG, "Tiempo actual → día=%d, %02d:%02d",
+                     weekday, hour_now, minute_now);
+
+            int now_minutes = hour_now * 60 + minute_now;
             pwm = 0;
-            for (int i = 0; i < 3; i++)
+
+            for (int i = 0; i < MAX_REGISTERS; i++)
             {
-                if (!cfg->reg[i].active)
+                fan_register_t *r = &cfg->reg[i];
+
+                ESP_LOGI(TAG,
+                         "Reg %d: active=%d daysMask=%02X todayBit=%d "
+                         "hora=%02d:%02d → %02d:%02d",
+                         i + 1,
+                         r->active,
+                         r->days,
+                         weekday - 1,
+                         r->hour_start, r->min_start,
+                         r->hour_end, r->min_end);
+
+                // 1. ¿Está activo?
+                if (!r->active)
                     continue;
 
-                int start = cfg->reg[i].hour_start * 60 + cfg->reg[i].min_start;
-                int end = cfg->reg[i].hour_end * 60 + cfg->reg[i].min_end;
+                // 2. ¿Coincide el día?
+                if (!is_day_active(r->days, weekday))
+                    continue;
 
-                if (time_in_range(minutes, start, end))
-                {
-                    pwm = pwm_from_temperature(temp,
-                                               cfg->reg[i].temp0,
-                                               cfg->reg[i].temp100);
-                    break;
-                }
+                // 3. ¿Coincide la hora?
+                int start = r->hour_start * 60 + r->min_start;
+                int end = r->hour_end * 60 + r->min_end;
+
+                if (!time_in_range(now_minutes, start, end))
+                    continue;
+
+                // 4. Coincide → calcular PWM
+                pwm = pwm_from_temperature(temp, r->temp0, r->temp100);
+
+                ESP_LOGI(TAG,
+                         "✔ Registro %d coincide → PWM=%d",
+                         i + 1, pwm);
+
+                break; // ya se encontró el registro que aplica
             }
+
             break;
         }
 
+        } // <-- ESTA CIERRA EL SWITCH
+
+        /* ==========================
+           APLICAR PWM Y LOG GENERAL
+           ========================== */
         fan_set_pwm(pwm);
 
         ESP_LOGI(TAG,
                  "[Mode=%d] Temp=%.2f Presencia=%d PWM=%d%%",
                  cfg->mode, temp, presence, pwm);
 
-        vTaskDelay(pdMS_TO_TICKS(1000)); // cada 1 segundo
+        vTaskDelay(pdMS_TO_TICKS(300));
     }
 }
 

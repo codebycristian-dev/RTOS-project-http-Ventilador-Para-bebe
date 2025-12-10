@@ -1,11 +1,13 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+#define MAX_REGISTERS 3
 
     /**
      * @brief Modos de funcionamiento del ventilador.
@@ -29,6 +31,7 @@ extern "C"
         int min_end;    // 0-59
         float temp0;    // temp para 0% PWM
         float temp100;  // temp para 100% PWM
+        uint8_t days;
     } fan_register_t;
 
     /**
@@ -40,7 +43,7 @@ extern "C"
         int pwm_manual;        // 0–100 %
         float Tmin;            // Temp mínima (auto)
         float Tmax;            // Temp máxima (auto)
-        fan_register_t reg[3]; // Tres registros programados
+        fan_register_t reg[MAX_REGISTERS]; // Tres registros programados
     } fan_config_t;
 
     /**

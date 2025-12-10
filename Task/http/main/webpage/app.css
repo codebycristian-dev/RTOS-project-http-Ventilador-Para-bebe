@@ -297,4 +297,8 @@ select:focus {
     border-color: #007aff;
     color: white;
     font-weight: bold;
+.error-border {
+        border: 2px solid red !important;
+        box-shadow: 0 0 10px rgba(255, 0, 0, 0.6);
+    }
 }

@@ -48,7 +48,11 @@ float sensor_get_temperature(void)
     }
     else
     {
-        ESP_LOGE(TAG, "Error leyendo DS18B20. Manteniendo último valor");
+        static int errCount = 0;
+        if (errCount++ % 5 == 0)
+        {
+            ESP_LOGE(TAG, "Error leyendo DS18B20");
+        }
     }
 
     return temperature_c;

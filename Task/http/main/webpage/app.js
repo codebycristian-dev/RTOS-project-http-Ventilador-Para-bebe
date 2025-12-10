@@ -126,21 +126,6 @@ function otaRebootTimer()
  */
 
 
-function getregValues()
-{
-	$.getJSON('/read_regs.json', function(data) {
-		$("#reg_1").text(data["reg1"]);
-		$("#reg_2").text(data["reg2"]);
-		$("#reg_3").text(data["reg3"]);
-		$("#reg_4").text(data["reg4"]);
-		$("#reg_5").text(data["reg5"]);
-		$("#reg_6").text(data["reg6"]);
-		$("#reg_7").text(data["reg7"]);
-		$("#reg_8").text(data["reg8"]);
-		$("#reg_9").text(data["reg9"]);
-		$("#reg_10").text(data["reg10"]);
-	});
-}
 
 function getDHTSensorValues()
 {
@@ -309,64 +294,6 @@ function showPassword()
 	}
 }
 
-
-function send_register()
-{
-    // Assuming you have selectedNumber, hours, minutes variables populated from your form
-    selectedNumber = $("#selectNumber").val();
-    hours = $("#hours").val();
-    minutes = $("#minutes").val();
-    
-    // Create an array for selected days
-    var selectedDays = [];
-    if ($("#day_mon").prop("checked")) selectedDays.push("1");
-	else selectedDays.push("0");
-    if ($("#day_tue").prop("checked")) selectedDays.push("1");
-	else selectedDays.push("0");
-    if ($("#day_wed").prop("checked")) selectedDays.push("1");
-	else selectedDays.push("0");
-    if ($("#day_thu").prop("checked")) selectedDays.push("1");
-	else selectedDays.push("0");
-    if ($("#day_fri").prop("checked")) selectedDays.push("1");
-	else selectedDays.push("0");
-    if ($("#day_sat").prop("checked")) selectedDays.push("1");
-	else selectedDays.push("0");
-    if ($("#day_sun").prop("checked")) selectedDays.push("1");
-	else selectedDays.push("0");
-
-    // Create an object to hold the data to be sent in the request body
-    var requestData = {
-        'selectedNumber': selectedNumber,
-        'hours': hours,
-        'minutes': minutes,
-        'selectedDays': selectedDays,
-        'timestamp': Date.now()
-    };
-
-    // Serialize the data object to JSON
-    var requestDataJSON = JSON.stringify(requestData);
-
-	$.ajax({
-		url: '/regchange.json',
-		dataType: 'json',
-		method: 'POST',
-		cache: false,
-		data: requestDataJSON, // Send the JSON data in the request body
-		contentType: 'application/json', // Set the content type to JSON
-		success: function(response) {
-		  // Handle the success response from the server
-		  console.log(response);
-		},
-		error: function(xhr, status, error) {
-		  // Handle errors
-		  console.error(xhr.responseText);
-		}
-	  });
-
-    // Print the resulting JSON to the console (for testing)
-    //console.log(requestDataJSON);
-}
-
 /**
  * toogle led function.
  */
@@ -386,44 +313,6 @@ function read_reg()
 //	xhr.open("POST", "/toogle_led.json");
 //	xhr.setRequestHeader("Content-Type", "application/json");
 //	xhr.send(JSON.stringify({data: "mi información"}));
-}
-
-
-function erase_register()
-{
-    // Assuming you have selectedNumber, hours, minutes variables populated from your form
-    selectedNumber = $("#selectNumber").val();
-
-
-
-    // Create an object to hold the data to be sent in the request body
-    var requestData = {
-        'selectedNumber': selectedNumber,
-        'timestamp': Date.now()
-    };
-
-    // Serialize the data object to JSON
-    var requestDataJSON = JSON.stringify(requestData);
-
-	$.ajax({
-		url: '/regchange.json',
-		dataType: 'json',
-		method: 'POST',
-		cache: false,
-		data: requestDataJSON, // Send the JSON data in the request body
-		contentType: 'application/json', // Set the content type to JSON
-		success: function(response) {
-		  // Handle the success response from the server
-		  console.log(response);
-		},
-		error: function(xhr, status, error) {
-		  // Handle errors
-		  console.error(xhr.responseText);
-		}
-	  });
-
-    // Print the resulting JSON to the console (for testing)
-    //console.log(requestDataJSON);
 }
 
 function toogle_led() 
@@ -521,6 +410,12 @@ function setFanMode(mode) {
 		.then(() => {
 			console.log("Modo cambiado:", mode);
 			loadFanState();
+			if (mode === 2) {
+				loadRegisters();
+			}
+			if (mode === 0) {
+				saveManualPWM();
+			}
 		})
 		.catch(err => console.log("Error cambiando modo:", err));
 }
@@ -595,8 +490,14 @@ function saveAutoConfig() {
 // REGISTROS PROGRAMADOS
 // ============================================================
 function createRegisterCard(id, reg) {
+
+	// Traducción bitmask → checked
+	function check(mask, bit) {
+		return (mask & (1 << bit)) ? "checked" : "";
+	}
+
 	return `
-    <div class="card inner-card">
+    <div class="card inner-card" id="reg_card_${id}">
         <h4>Registro ${id + 1}</h4>
 
         <label>Activo:
@@ -615,50 +516,236 @@ function createRegisterCard(id, reg) {
         <label>T100% (°C):</label>
         <input type="number" id="reg${id}_t100" step="0.1" value="${reg.temp100}">
 
+        <label>Días:</label>
+        <div class="days small-days">
+            <label><input type="checkbox" id="reg${id}_day0" ${check(reg.days, 0)}>Lun</label>
+            <label><input type="checkbox" id="reg${id}_day1" ${check(reg.days, 1)}>Mar</label>
+            <label><input type="checkbox" id="reg${id}_day2" ${check(reg.days, 2)}>Mié</label>
+            <label><input type="checkbox" id="reg${id}_day3" ${check(reg.days, 3)}>Jue</label>
+            <label><input type="checkbox" id="reg${id}_day4" ${check(reg.days, 4)}>Vie</label>
+            <label><input type="checkbox" id="reg${id}_day5" ${check(reg.days, 5)}>Sáb</label>
+            <label><input type="checkbox" id="reg${id}_day6" ${check(reg.days, 6)}>Dom</label>
+        </div>
+
         <button class="btn primary" onclick="saveRegister(${id})">Guardar</button>
     </div>
     `;
 }
 
 function loadRegisters() {
-	let container = document.getElementById("program_list");
-	container.innerHTML = "";
+	let container = document.getElementById("program_blocks");
+	container.innerHTML = ""; // limpiar contenido
 
 	for (let i = 0; i < 3; i++) {
-		fetch(`/fan/get_register.json?id=${i}`)
+		const visibleId = i + 1; // IDs visibles: 0, 1, 2
+		fetch(`/fan/get_register.json?id=${visibleId}`)
 			.then(res => res.json())
 			.then(reg => {
+				console.log("Registro recibido:", reg);
 				container.innerHTML += createRegisterCard(i, reg);
-			});
+			})
+			.catch(err => console.error("Error leyendo registro:", err));
 	}
 }
 
 function saveRegister(id) {
+
+	function getDaysMask(id) {
+		let mask = 0;
+		for (let d = 0; d < 7; d++) {
+			if (document.getElementById(`reg${id}_day${d}`).checked)
+				mask |= (1 << d);
+		}
+		return mask;
+	}
+
 	let active = document.getElementById(`reg${id}_active`).checked ? 1 : 0;
 
 	let [hs, ms] = document.getElementById(`reg${id}_start`).value.split(":");
 	let [he, me] = document.getElementById(`reg${id}_end`).value.split(":");
 
-	let t0 = document.getElementById(`reg${id}_t0`).value;
-	let t100 = document.getElementById(`reg${id}_t100`).value;
+	let t0 = parseFloat(document.getElementById(`reg${id}_t0`).value);
+	let t100 = parseFloat(document.getElementById(`reg${id}_t100`).value);
+
+	let days = getDaysMask(id);
 
 	let json = JSON.stringify({
-		id: id,
+		id: id + 1,
 		active: active,
 		hour_start: parseInt(hs),
 		min_start: parseInt(ms),
 		hour_end: parseInt(he),
 		min_end: parseInt(me),
-		temp0: parseFloat(t0),
-		temp100: parseFloat(t100)
+		temp0: t0,
+		temp100: t100,
+		days: days
 	});
+
+	// =====================
+	// ENVIAR AL SERVIDOR
+	// =====================
+	fetch("/fan/set_register.json", {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: json
+	})
+		.then(async response => {
+
+			if (response.status === 409) {
+				// CONFLICTO DETECTADO → HORARIO SOLAPADO
+				let msg = await response.text();
+
+				alert(
+					"⚠ Conflicto detectado:\n\n" +
+					"Ya existe otro registro activo en este mismo horario " +
+					"y con los mismos días seleccionados.\n" +
+					"Debes modificar el horario o los días."
+				);
+
+				// Marcar visualmente el registro en conflicto
+				let card = document.querySelector(`#reg_card_${id}`);
+				if (card) {
+					card.classList.add("error-border");
+					setTimeout(() => card.classList.remove("error-border"), 2500);
+				}
+
+				throw new Error("Registro solapado");
+			}
+
+			if (!response.ok) {
+				alert("❌ Error inesperado al guardar el registro, ya existe un resgistro guardado en este horario.");
+				throw new Error("Error desconocido");
+			}
+
+			alert("✔ Registro actualizado correctamente.");
+		})
+		.catch(err => console.error("Error al guardar:", err));
+}
+
+//nueva función para enviar los datos del registro al servidor
+function send_register() {
+
+	let id = parseInt(document.getElementById("selectNumber").value);
+	let hour_start = parseInt(document.getElementById("hour_start").value);
+	let min_start = parseInt(document.getElementById("min_start").value);
+	let hour_end = parseInt(document.getElementById("hour_end").value);
+	let min_end = parseInt(document.getElementById("min_end").value);
+	let temp0 = parseFloat(document.getElementById("temp0").value);
+	let temp100 = parseFloat(document.getElementById("temp100").value);
+	
+	let active = document.getElementById("reg_active").checked ? 1 : 0;
+
+	let daysMask = 0;
+	const dayIds = ["day_mon", "day_tue", "day_wed", "day_thu", "day_fri", "day_sat", "day_sun"];
+	for (let i = 0; i < 7; i++) {
+		if (document.getElementById(dayIds[i]).checked)
+			daysMask |= (1 << i);
+	}
+
+	// ============================================================
+	// Forma en que lo hago yo (usando fetch)
+	// ============================================================
+
+	let body = JSON.stringify({
+		id: id,
+		active: active,
+		hour_start: hour_start,
+		min_start: min_start,
+		hour_end: hour_end,
+		min_end: min_end,
+		temp0: temp0,
+		temp100: temp100,
+		days : daysMask
+	});
+	console.log("Enviando registro:", body);
 
 	fetch("/fan/set_register.json", {
 		method: "POST",
-		body: json
-	}).then(() => {
-		console.log("Registro guardado:", id);
-	});
+		headers: {"Content-Type": "application/json"},
+		body: body
+	})
+	.then(response => response.json())
+	.then(resp => {
+		console.log("Registro guardado:", resp);
+		alert("Registro actualizado correctamente.");
+	})
+	.catch(err => console.error("Error al guardar:", err));
+	// ============================================================
+	// Forma en lo que lo hace el docente (usando jQuery)
+	// ============================================================
+	// 	$.ajax({
+	// 		url: "/fan/set_register.json",
+	// 		method: "POST",
+	// 		contentType: "application/json",
+	// 		data: body,
+	// 		success: function (resp) {
+	// 			console.log("Registro guardado:", resp);
+	// 			alert("Registro actualizado correctamente.");
+	// 		},
+	// 		error: function (xhr, status, err) {
+	// 			console.error("Error al guardar:", xhr.responseText);
+	// 			alert("Error al guardar el registro.");
+	// 		}
+	// 	});
+	// }
+}
+
+// nueva función para borrar un registro
+function erase_register() {
+	let id = parseInt(document.getElementById("selectNumber").value);
+
+	let emptyRegister = {
+		id: id,
+		active: 0,
+		hour_start: 0,
+		min_start: 0,
+		hour_end: 0,
+		min_end: 0,
+		temp0: 24.0,
+		temp100: 30.0,
+		days: 0
+	};
+
+	fetch("/fan/set_register.json", {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify(emptyRegister)
+	})
+		.then(() => {
+			alert("Registro borrado correctamente.");
+		})
+		.catch(err => console.error("Error borrando registro:", err));
+}
+
+//nueva función para obtener los valores de los registros y mostrarlos en la interfaz
+function getregValues() {
+
+	function decodeDays(mask) {
+		const dayNames = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+		let out = [];
+
+		for (let i = 0; i < 7; i++) {
+			if (mask & (1 << i)) out.push(dayNames[i]);
+		}
+
+		return out.length > 0 ? out.join(", ") : "Ninguno";
+	}
+
+	for (let i = 0; i < 3; i++) {
+		fetch(`/fan/get_register.json?id=${i}`)
+			.then(res => res.json())
+			.then(r => {
+
+				let text =
+					(r.active ? "Activo" : "Inactivo") +
+					` | ${r.hour_start.toString().padStart(2, "0")}:${r.min_start.toString().padStart(2, "0")} - ` +
+					`${r.hour_end.toString().padStart(2, "0")}:${r.min_end.toString().padStart(2, "0")}` +
+					` | ${r.temp0}°C → ${r.temp100}°C` +
+					` | Días: ${decodeDays(r.days)}`;
+
+				document.getElementById(`reg_${i + 1}`).innerText = text;
+			});
+	}
 }
 
 // ============================================================

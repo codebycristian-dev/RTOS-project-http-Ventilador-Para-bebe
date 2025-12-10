@@ -27,6 +27,7 @@ static void load_register(nvs_handle_t h, const char *key, fan_register_t *r)
         r->min_end = 0;
         r->temp0 = 24.0;
         r->temp100 = 30.0;
+        r->days = 0x7F; // Todos los días activados
     }
 }
 
@@ -79,10 +80,14 @@ void config_app_init(void)
         cfg.Tmax = 30.0f; // Valor por defecto
     }
 
-    // --------- REGISTROS 1..3 ---------
-    load_register(h, "reg1", &cfg.reg[0]);
-    load_register(h, "reg2", &cfg.reg[1]);
-    load_register(h, "reg3", &cfg.reg[2]);
+    // --------- REGISTROS 1..3 ---------// anexar más registros si se requiere
+    char key[8];
+
+    for (int i = 0; i < MAX_REGISTERS; i++)
+    {
+        snprintf(key, sizeof(key), "reg%d", i + 1); // "reg1", "reg2", ...
+        load_register(h, key, &cfg.reg[i]);
+    }
 
     nvs_close(h);
 
@@ -106,11 +111,13 @@ void config_app_save(void)
     nvs_set_i32(h, "pwm_manual", cfg.pwm_manual);
     nvs_set_blob(h, "tmin", &cfg.Tmin, sizeof(float));
     nvs_set_blob(h, "tmax", &cfg.Tmax, sizeof(float));
+    char key[8];
 
-    save_register(h, "reg1", &cfg.reg[0]);
-    save_register(h, "reg2", &cfg.reg[1]);
-    save_register(h, "reg3", &cfg.reg[2]);
-
+    for (int i = 0; i < MAX_REGISTERS; i++)
+    {
+        snprintf(key, sizeof(key), "reg%d", i + 1);
+        save_register(h, key, &cfg.reg[i]);
+    }
     nvs_commit(h);
     nvs_close(h);
 
