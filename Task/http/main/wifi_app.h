@@ -76,19 +76,13 @@ typedef struct register_saved
 
 static void obtain_time(void);
 void connect_to_wifi(void);
-void initialize_registers(void);
-esp_err_t read_reg_data(char *str_to_save, uint8_t register_num);
 void init_obtain_time(void);
 bool get_state_time_was_synchronized(void);
 
-void save_reg_data(uint8_t register, char *str);
 void save_wifi_credentials(const char *ssid, const char *password);
 void load_wifi_credentials(char *ssid, char *password);
 static void wifi_app_connect_sta(void);
 void check_sta_connection_state(void *pvParameters);
-void task_compare_hour_to_execute_action(void *pvParameters);
-void update_register(int reg_to_update);
-
 /**
  * Sends a message to the queue
  * @param msgID message ID from the wifi_app_message_e enum.
@@ -110,17 +104,13 @@ wifi_config_t *wifi_app_get_wifi_config(void);
 /**
  * Sets the callback function.
  */
-void wifi_app_set_callback(wifi_connected_event_callback_t cb);
 
-/**
- * Calls the callback function.
- */
-void wifi_app_call_callback(void);
+
 
 /**
  * Gets the RSSI value of the Wifi connection.
  * @return current RSSI level.
  */
-int8_t wifi_app_get_rssi(void);
+
 
 #endif /* MAIN_WIFI_APP_H_ */

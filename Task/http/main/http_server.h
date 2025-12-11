@@ -56,13 +56,6 @@ BaseType_t http_server_monitor_send_message(http_server_message_e msgID);
  */
 void http_server_start(void);
 
-static void mqtt_app_start(void);
-static void log_error_if_nonzero(const char *message, int error_code);
-
-static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data);
-/**
- * Stops the HTTP server.
- */
 void http_server_stop(void);
 
 /**

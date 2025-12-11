@@ -17,7 +17,6 @@
 #include "nvs.h"
 
 #include "http_server.h"
-#include "rgb_led.h"
 #include "tasks_common.h"
 #include "wifi_app.h"
 #include "esp_sntp.h"
@@ -99,276 +98,6 @@ void save_wifi_credentials(const char *ssid, const char *password)
 	ESP_ERROR_CHECK(nvs_set_str(nvs_handle, "wifi_password", password));
 	ESP_ERROR_CHECK(nvs_commit(nvs_handle));
 	nvs_close(nvs_handle);
-}
-
-void save_reg_data(uint8_t register_num, char *str)
-{
-	nvs_handle_t nvs_handle;
-	ESP_ERROR_CHECK(nvs_open("storage", NVS_READWRITE, &nvs_handle));
-
-	if (register_num == 1)
-	{
-		ESP_ERROR_CHECK(nvs_set_str(nvs_handle, "reg01", str));
-	}
-	else if (register_num == 2)
-	{
-		ESP_ERROR_CHECK(nvs_set_str(nvs_handle, "reg02", str));
-	}
-	else if (register_num == 3)
-	{
-		ESP_ERROR_CHECK(nvs_set_str(nvs_handle, "reg03", str));
-	}
-	else if (register_num == 4)
-	{
-		ESP_ERROR_CHECK(nvs_set_str(nvs_handle, "reg04", str));
-	}
-	else if (register_num == 5)
-	{
-		ESP_ERROR_CHECK(nvs_set_str(nvs_handle, "reg05", str));
-	}
-	else if (register_num == 6)
-	{
-		ESP_ERROR_CHECK(nvs_set_str(nvs_handle, "reg06", str));
-	}
-	else if (register_num == 7)
-	{
-		ESP_ERROR_CHECK(nvs_set_str(nvs_handle, "reg07", str));
-	}
-	else if (register_num == 8)
-	{
-		ESP_ERROR_CHECK(nvs_set_str(nvs_handle, "reg08", str));
-	}
-	else if (register_num == 9)
-	{
-		ESP_ERROR_CHECK(nvs_set_str(nvs_handle, "reg09", str));
-	}
-	else if (register_num == 10)
-	{
-		ESP_ERROR_CHECK(nvs_set_str(nvs_handle, "reg10", str));
-	}
-
-	esp_err_t err;
-	err = nvs_commit(nvs_handle);
-	if (err == ESP_OK)
-	{
-		printf("information saved\n");
-	}
-	else if (err != ESP_OK)
-	{
-		printf("Error al confirmar cambios\n");
-	}
-
-	nvs_close(nvs_handle);
-}
-
-esp_err_t read_reg_data(char *str_to_save, uint8_t register_num)
-{
-
-	nvs_handle_t nvs_handle;
-	esp_err_t err;
-
-	// Abrir el NVS
-	err = nvs_open("storage", NVS_READWRITE, &nvs_handle);
-	if (err != ESP_OK)
-	{
-		// Manejar el error
-		return ESP_FAIL;
-	}
-
-	// Tamaño de la cadena que se espera leer
-	size_t str_len = 0;
-	char reg_to_send[6];
-	const char *ptr_const_char = reg_to_send;
-	memset(&reg_to_send[0], 0x00, 6);
-
-	if (register_num == 1)
-	{
-		strcpy(reg_to_send, "reg01");
-	}
-	else if (register_num == 2)
-	{
-		strcpy(reg_to_send, "reg02");
-	}
-	else if (register_num == 3)
-	{
-		strcpy(reg_to_send, "reg03");
-	}
-	else if (register_num == 4)
-	{
-		strcpy(reg_to_send, "reg04");
-	}
-	else if (register_num == 5)
-	{
-		strcpy(reg_to_send, "reg05");
-	}
-	else if (register_num == 6)
-	{
-		strcpy(reg_to_send, "reg06");
-	}
-	else if (register_num == 7)
-	{
-		strcpy(reg_to_send, "reg07");
-	}
-	else if (register_num == 8)
-	{
-		strcpy(reg_to_send, "reg08");
-	}
-	else if (register_num == 9)
-	{
-		strcpy(reg_to_send, "reg09");
-	}
-	else if (register_num == 10)
-	{
-		strcpy(reg_to_send, "reg10");
-	}
-
-	size_t required_size;
-	// Get the size of wifi_ssid
-	esp_err_t erras;
-	erras = nvs_get_str(nvs_handle, ptr_const_char, NULL, &required_size);
-	if (erras != ESP_OK)
-	{
-		printf("not found\n");
-		return ESP_FAIL;
-	}
-	if (erras == ESP_OK)
-	{
-		printf("register found\n");
-	}
-	// Allocate memory for wifi_ssid
-
-	char *reg_buffer = malloc(required_size);
-	if (reg_buffer == NULL)
-	{
-		// Handle memory allocation error
-		ESP_LOGE(TAG, "Failed to allocate memory for wifi_ssid");
-		nvs_close(nvs_handle);
-		return ESP_FAIL;
-	}
-	// Get reg
-	erras = nvs_get_str(nvs_handle, ptr_const_char, reg_buffer, &required_size);
-	strncpy(str_to_save, reg_buffer, required_size);
-	ESP_LOGI(TAG, "Valor leído para la clave '%s': %s", reg_to_send, str_to_save);
-	free(reg_buffer);
-
-	/*
-
-			err = nvs_get_str(nvs_handle, ptr_const_char, str_to_save, 11);
-			if (err == ESP_OK) {
-				// Imprimir la cadena leída
-				printf("Valor leído: %s\n", str_to_save);
-			} else {
-				// Manejar el error al leer
-				fprintf(stderr, "Error al leer el valor desde el NVS.\n");
-			}
-	*/
-
-	// Cerrar el NVS
-	nvs_close(nvs_handle);
-	return ESP_OK;
-}
-void update_register(int reg_to_update)
-{
-	char register_information_read[12];
-	register_information_read[11] = 0x00;
-	char hora_min_str[3];
-	hora_min_str[2] = 0x00;
-	char day[2];
-	day[1] = 0x00;
-	register_information_read[11] = 0x00;
-	if (read_reg_data(&register_information_read[0], reg_to_update) == ESP_OK)
-	{
-
-		strncpy(&hora_min_str[0], &register_information_read[0], 2);
-		register_readings_from_flash[reg_to_update - 1].hour = atoi(hora_min_str);
-
-		strncpy(&hora_min_str[0], &register_information_read[2], 2);
-		register_readings_from_flash[reg_to_update - 1].min = atoi(hora_min_str);
-
-		strncpy(&day[0], &register_information_read[4], 1);
-		register_readings_from_flash[reg_to_update - 1].monday = atoi(day);
-
-		strncpy(&day[0], &register_information_read[5], 1);
-		register_readings_from_flash[reg_to_update - 1].tuesday = atoi(day);
-
-		strncpy(&day[0], &register_information_read[6], 1);
-		register_readings_from_flash[reg_to_update - 1].wednesday = atoi(day);
-
-		strncpy(&day[0], &register_information_read[7], 1);
-		register_readings_from_flash[reg_to_update - 1].thursday = atoi(day);
-
-		strncpy(&day[0], &register_information_read[8], 1);
-		register_readings_from_flash[reg_to_update - 1].friday = atoi(day);
-
-		strncpy(&day[0], &register_information_read[9], 1);
-		register_readings_from_flash[reg_to_update - 1].saturday = atoi(day);
-
-		strncpy(&day[0], &register_information_read[10], 1);
-		register_readings_from_flash[reg_to_update - 1].sunday = atoi(day);
-
-		ESP_LOGI(TAG, "hora: %d, min: %d, day0: %d, day1: %d, day2: %d, day3: %d, day4: %d, day5: %d, day6: %d", register_readings_from_flash[reg_to_update - 1].hour, register_readings_from_flash[reg_to_update - 1].min, register_readings_from_flash[reg_to_update - 1].monday,
-				 register_readings_from_flash[reg_to_update - 1].tuesday, register_readings_from_flash[reg_to_update - 1].wednesday, register_readings_from_flash[reg_to_update - 1].thursday, register_readings_from_flash[reg_to_update - 1].friday, register_readings_from_flash[reg_to_update - 1].saturday, register_readings_from_flash[reg_to_update - 1].sunday);
-	}
-}
-void initialize_registers(void)
-{
-
-	char register_information_read[12];
-	register_information_read[11] = 0x00;
-	char hora_min_str[3];
-	hora_min_str[2] = 0x00;
-	char day[2];
-	day[1] = 0x00;
-
-	for (int i = 0; i < NUM_REGISTERS_AV; i++)
-	{
-		if (read_reg_data(&register_information_read[0], i + 1) == ESP_OK)
-		{
-
-			strncpy(&hora_min_str[0], &register_information_read[0], 2);
-			register_readings_from_flash[i].hour = atoi(hora_min_str);
-
-			strncpy(&hora_min_str[0], &register_information_read[2], 2);
-			register_readings_from_flash[i].min = atoi(hora_min_str);
-
-			strncpy(&day[0], &register_information_read[4], 1);
-			register_readings_from_flash[i].monday = atoi(day);
-
-			strncpy(&day[0], &register_information_read[5], 1);
-			register_readings_from_flash[i].tuesday = atoi(day);
-
-			strncpy(&day[0], &register_information_read[6], 1);
-			register_readings_from_flash[i].wednesday = atoi(day);
-
-			strncpy(&day[0], &register_information_read[7], 1);
-			register_readings_from_flash[i].thursday = atoi(day);
-
-			strncpy(&day[0], &register_information_read[8], 1);
-			register_readings_from_flash[i].friday = atoi(day);
-
-			strncpy(&day[0], &register_information_read[9], 1);
-			register_readings_from_flash[i].saturday = atoi(day);
-
-			strncpy(&day[0], &register_information_read[10], 1);
-			register_readings_from_flash[i].sunday = atoi(day);
-
-			// ESP_LOGI(TAG, "hora: %d, min: %d, day0: %d, day1: %d, day2: %d, day3: %d, day4: %d, day5: %d, day6: %d", register_readings_from_flash[i].hour, register_readings_from_flash[i].min, register_readings_from_flash[i].monday ,
-			// register_readings_from_flash[i].tuesday , register_readings_from_flash[i].wednesday , register_readings_from_flash[i].thursday  , register_readings_from_flash[i].friday
-			//, register_readings_from_flash[i].saturday, register_readings_from_flash[i].sunday);
-		}
-		else
-		{
-			register_readings_from_flash[i].hour = 99;
-			register_readings_from_flash[i].min = 99;
-			register_readings_from_flash[i].monday = 0;
-			register_readings_from_flash[i].tuesday = 0;
-			register_readings_from_flash[i].wednesday = 0;
-			register_readings_from_flash[i].thursday = 0;
-			register_readings_from_flash[i].friday = 0;
-			register_readings_from_flash[i].sunday = 0;
-			register_readings_from_flash[i].saturday = 0;
-		}
-	}
 }
 
 void load_wifi_credentials(char *ssid, char *password)
@@ -682,8 +411,6 @@ static void wifi_app_task(void *pvParameters)
 	// Send first event message
 	wifi_app_send_message(WIFI_APP_MSG_START_HTTP_SERVER);
 	wifi_app_send_message(WIFI_APP_CONNECT_TO_STA);
-	initialize_registers(); // Init registers of hours
-
 	for (;;)
 	{
 		if (xQueueReceive(wifi_app_queue_handle, &msg, portMAX_DELAY))
@@ -708,7 +435,6 @@ static void wifi_app_task(void *pvParameters)
 				ESP_LOGI(TAG, "WIFI_APP_MSG_START_HTTP_SERVER");
 
 				http_server_start();
-				rgb_led_http_server_started();
 
 				break;
 
@@ -729,7 +455,6 @@ static void wifi_app_task(void *pvParameters)
 			case WIFI_APP_MSG_STA_CONNECTED_GOT_IP:
 				ESP_LOGI(TAG, "WIFI_APP_MSG_STA_CONNECTED_GOT_IP");
 
-				rgb_led_wifi_connected();
 				http_server_monitor_send_message(HTTP_MSG_WIFI_CONNECT_SUCCESS);
 
 				break;
@@ -766,7 +491,6 @@ void wifi_app_start(void)
 	ESP_LOGI(TAG, "STARTING WIFI APPLICATION");
 
 	// Start WiFi started LED
-	rgb_led_wifi_app_started();
 
 	// Disable default WiFi logging messages
 	esp_log_level_set("wifi", ESP_LOG_NONE);

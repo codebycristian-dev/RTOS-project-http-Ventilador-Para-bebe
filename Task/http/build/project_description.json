@@ -1,7 +1,7 @@
 {
     "version":            "1.1",
     "project_name":       "http",
-    "project_version":    "33fd8645-dirty",
+    "project_version":    "3b4870d6-dirty",
     "project_path":       "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http",
     "idf_path":           "C:/Espressif/frameworks/esp-idf-v5.3.1",
     "build_dir":          "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/build",
@@ -1180,7 +1180,7 @@
             "managed_reqs": [],
             "managed_priv_reqs": [],
             "file": "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/build/esp-idf/main/libmain.a",
-            "sources": [ "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/main.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/rgb_led.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/wifi_app.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/http_server.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/sensor_app.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/fan_control.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/config_app.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/logic_app.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/ds18b20_bitbang.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/onewire.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/build/app.css.S", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/build/app.js.S", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/build/favicon.ico.S", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/build/index.html.S", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/build/jquery-3.3.1.min.js.S" ],
+            "sources": [ "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/main.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/wifi_app.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/http_server.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/sensor_app.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/fan_control.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/config_app.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/logic_app.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/ds18b20_bitbang.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/main/onewire.c", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/build/app.css.S", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/build/app.js.S", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/build/favicon.ico.S", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/build/index.html.S", "C:/esp/Entrega_Trabajos_Cristian_Dorado/Task/http/build/jquery-3.3.1.min.js.S" ],
             "include_dirs": [ "." ]
         },
         "mbedtls": {
