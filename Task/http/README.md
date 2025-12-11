@@ -1,53 +1,218 @@
-| Supported Targets | ESP32 | ESP32-C2 | ESP32-C3 | ESP32-C5 | ESP32-C6 | ESP32-C61 | ESP32-H2 | ESP32-P4 | ESP32-S2 | ESP32-S3 | Linux |
-| ----------------- | ----- | -------- | -------- | -------- | -------- | --------- | -------- | -------- | -------- | -------- | ----- |
+# 🌬️ Ventilador Inteligente con ESP32 + RTOS + Interfaz Web
 
-# Hello World Example
+Este proyecto implementa un **sistema de ventilación inteligente** basado en un ESP32, utilizando **FreeRTOS**, control PWM, sensores ambientales y una interfaz web completamente interactiva.  
 
-Starts a FreeRTOS task to print "Hello World".
+Permite controlar manualmente el ventilador, usar un modo automático por temperatura y un modo programado con hasta **3 registros horarios**, todos configurables desde un panel web moderno.
 
-(See the README.md file in the upper level 'examples' directory for more information about examples.)
+---
 
-## How to use example
+## 🚀 Características principales
 
-Follow detailed instructions provided specifically for this example.
+- ✔ Control por **PWM de alta frecuencia** (25 kHz)
+- ✔ Sensor de temperatura **DS18B20**
+- ✔ Sensor de presencia **PIR HC-SR501**
+- ✔ 3 modos de trabajo:
+  - **Manual** → el usuario fija el PWM
+  - **Automático** → PWM depende de Tmin/Tmax
+  - **Programado** → hasta 3 horarios con días, temperaturas y activación
+- ✔ Prevención de **solapamiento de horarios**
+- ✔ API REST interna (JSON)
+- ✔ Interfaz web estilo iOS completamente responsiva
+- ✔ Actualización OTA del firmware
+- ✔ Lógica modular separada por tareas RTOS
 
-Select the instructions depending on Espressif chip installed on your development board:
+---
 
-- [ESP32 Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/stable/get-started/index.html)
-- [ESP32-S2 Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/get-started/index.html)
+# 📦 Hardware utilizado
+
+| Componente | Función |
+|-----------|---------|
+| **ESP32 DevKit V1** | Microcontrolador principal |
+| **DS18B20** | Lectura de temperatura |
+| **PIR HC-SR501** | Detección de presencia |
+| **Ventilador PWM / LED de simulación** | Actuador |
+| **Fuente + cableado** | Interconexión |
+
+---
+
+# 🧠 Arquitectura del Firmware
+
+El firmware está dividido en **módulos independientes**, cada uno responsable de una parte del sistema:
+
+| Archivo | Descripción |
+|--------|-------------|
+| `sensor_app.c` | Lee temperatura, presencia y maneja fallos del DS18B20 |
+| `logic_app.c` | Calcula PWM según el modo (manual, auto, programado) |
+| `fan_control.c` | Configura el PWM (LEDC) y aplica el duty cycle |
+| `config_app.c` | Gestiona configuración persistente en NVS |
+| `http_server.c` | Maneja servidor web + API REST |
+| `wifi_app.c` | Conexión WiFi + estado + tiempo NTP |
+| `main.c` | Inicialización general + arranque de tareas |
+
+---
+
+# 🧵 Tareas FreeRTOS (RTOS)
+
+El sistema utiliza varias tareas que se ejecutan en paralelo:
+
+### **1️⃣ sensor_task**
+- Lee temperatura del DS18B20  
+- Lee presencia del PIR  
+- Maneja error del sensor (usa último valor válido)  
+
+### **2️⃣ logic_task**
+- Aplica la lógica principal del ventilador  
+- Evalúa modo manual, auto y programado  
+- Detecta coincidencias de horario/días  
+- Calcula el PWM final  
+
+### **3️⃣ Servidor Web / WiFi**
+- Maneja peticiones HTTP  
+- Procesa POST/GET de la API  
+- Envía estado en JSON al frontend  
+
+---
+
+# 🧩 Modos de funcionamiento
+
+## 🔧 Modo Manual
+El usuario ajusta el slider → se envía a `/fan/set_manual_pwm.json`
+
+## 🤖 Modo Automático
+Usa dos límites configurables:
+- **Tmin ➜ 0% PWM**
+- **Tmax ➜ 100% PWM**
+
+Mapeo lineal:
 
 
-## Example folder contents
+## 📆 Modo Programado
+Hasta 3 registros:
 
-The project **hello_world** contains one source file in C language [hello_world_main.c](main/hello_world_main.c). The file is located in folder [main](main).
+Cada uno contiene:
+- Activado / desactivado
+- Hora inicio – Hora fin  
+- Días de la semana (bitmask)
+- Temp0 → PWM = 0%
+- Temp100 → PWM = 100%
 
-ESP-IDF projects are built using CMake. The project build configuration is contained in `CMakeLists.txt` files that provide set of directives and instructions describing the project's source files and targets (executable, library, or both).
+✔ Se evita automáticamente crear **horarios solapados** (respuesta HTTP 409).  
 
-Below is short explanation of remaining files in the project folder.
+---
+## 🧵 Tareas FreeRTOS
+1️⃣ sensor_task
 
-```
-├── CMakeLists.txt
-├── pytest_hello_world.py      Python script used for automated testing
-├── main
-│   ├── CMakeLists.txt
-│   └── hello_world_main.c
-└── README.md                  This is the file you are currently reading
-```
+Lee temperatura del DS18B20 cada 1s
 
-For more information on structure and contents of ESP-IDF projects, please refer to Section [Build System](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html) of the ESP-IDF Programming Guide.
+Detecta errores de lectura
 
-## Troubleshooting
+Mantiene último valor válido
 
-* Program upload failure
+Lee presencia del PIR
 
-    * Hardware connection is not correct: run `idf.py -p PORT monitor`, and reboot your board to see if there are any output logs.
-    * The baud rate for downloading is too high: lower your baud rate in the `menuconfig` menu, and try again.
+2️⃣ logic_task
 
-## Technical support and feedback
+Determina el modo actual
 
-Please use the following feedback channels:
+Evalúa:
 
-* For technical queries, go to the [esp32.com](https://esp32.com/) forum
-* For a feature request or bug report, create a [GitHub issue](https://github.com/espressif/esp-idf/issues)
+Manual → PWM directo
 
-We will get back to you as soon as possible.
+Automático → mapeo lineal
+
+Programado → coincidencia de horario y día
+
+Aplica PWM mediante fan_set_pwm()
+
+Corre cada 1 segundo
+
+3️⃣ http_server_task
+
+Atiende peticiones REST
+
+Sirve archivos HTML + CSS + JS
+
+Maneja OTA
+
+Responde estado del sistema en JSON
+
+## 🌐 API REST del sistema
+GET /fan/get_state.json
+🔹 Obtener estado del ventilador
+GET /fan/get_state.json
+
+
+Respuesta:
+
+{
+  "temperature": 21.7,
+  "presence": 1,
+  "pwm": 70,
+  "mode": 2,
+  "Tmin": 22.0,
+  "Tmax": 30.0
+}
+---
+
+
+## 🔹 Cambiar modo
+POST /fan/set_mode.json
+Body: "0" | "1" | "2"
+---
+## 🔹 Guardar PWM manual
+POST /fan/set_manual_pwm.json
+Body: "45"
+---
+## 🔹 Guardar configuración automática
+POST /fan/set_auto.json
+{
+  "Tmin": 22.0,
+  "Tmax": 30.0
+}
+---
+## 🔹 Obtener registro programado
+GET /fan/get_register.json?id=1
+---
+## 🔹 Guardar registro
+POST /fan/set_register.json
+{
+  "id": 1,
+  "active": 1,
+  "hour_start": 1,
+  "min_start": 0,
+  "hour_end": 2,
+  "min_end": 0,
+  "temp0": 22.0,
+  "temp100": 28.0,
+  "days": 4
+}
+
+🧩 Estructura del proyecto
+/main
+    main.c
+    logic_app.c
+    sensor_app.c
+    fan_control.c
+    config_app.c
+    wifi_app.c
+    http_server.c
+
+/frontend
+    index.html
+    app.css
+    app.js
+
+README.md
+
+🛠️ Cómo compilar y ejecutar
+Compilar
+idf.py build
+
+Flashear
+idf.py flash
+
+Monitorear
+idf.py monitor
+
+Abrir la interfaz web
+http://<IP-del-ESP32>/
