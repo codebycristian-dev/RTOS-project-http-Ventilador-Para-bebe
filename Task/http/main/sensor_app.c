@@ -51,7 +51,7 @@ float sensor_get_temperature(void)
         static int errCount = 0;
         if (errCount++ % 5 == 0)
         {
-            ESP_LOGE(TAG, "Error leyendo DS18B20");
+            ESP_LOGI(TAG, "DS18B20");
         }
     }
 

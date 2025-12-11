@@ -175,19 +175,6 @@ function startWifiConnectStatusInterval()
  */
 function connectWifi()
 {
-	// Get the SSID and password
-	/*selectedSSID = $("#connect_ssid").val();
-	pwd = $("#connect_pass").val();
-	
-	$.ajax({
-		url: '/wifiConnect.json',
-		dataType: 'json',
-		method: 'POST',
-		cache: false,
-		headers: {'my-connect-ssid': selectedSSID, 'my-connect-pwd': pwd},
-		data: {'timestamp': Date.now()}
-	});
-	*/
 	selectedSSID = $("#connect_ssid").val();
 	pwd = $("#connect_pass").val();
 	
@@ -283,13 +270,7 @@ function read_reg()
 		dataType: 'json',
 		method: 'POST',
 		cache: false,
-		//headers: {'my-connect-ssid': selectedSSID, 'my-connect-pwd': pwd},
-		//data: {'timestamp': Date.now()}
 	});
-//	var xhr = new XMLHttpRequest();
-//	xhr.open("POST", "/toogle_led.json");
-//	xhr.setRequestHeader("Content-Type", "application/json");
-//	xhr.send(JSON.stringify({data: "mi información"}));
 }
 
 function toogle_led() 
@@ -620,7 +601,7 @@ function send_register() {
 	}
 
 	// ============================================================
-	// Forma en que lo hago yo (usando fetch)
+	// ENVIO AL SERVIDOR
 	// ============================================================
 
 	let body = JSON.stringify({
@@ -647,24 +628,6 @@ function send_register() {
 		alert("Registro actualizado correctamente.");
 	})
 	.catch(err => console.error("Error al guardar:", err));
-	// ============================================================
-	// Forma en lo que lo hace el docente (usando jQuery)
-	// ============================================================
-	// 	$.ajax({
-	// 		url: "/fan/set_register.json",
-	// 		method: "POST",
-	// 		contentType: "application/json",
-	// 		data: body,
-	// 		success: function (resp) {
-	// 			console.log("Registro guardado:", resp);
-	// 			alert("Registro actualizado correctamente.");
-	// 		},
-	// 		error: function (xhr, status, err) {
-	// 			console.error("Error al guardar:", xhr.responseText);
-	// 			alert("Error al guardar el registro.");
-	// 		}
-	// 	});
-	// }
 }
 
 // nueva función para borrar un registro

@@ -3,7 +3,9 @@
 
 #include "driver/gpio.h"
 #include "esp_rom_sys.h"
-
+/**
+ * @brief Estructura para el bus OneWire.
+ */
 typedef struct
 {
     gpio_num_t pin;

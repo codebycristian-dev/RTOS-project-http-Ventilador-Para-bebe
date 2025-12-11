@@ -2,7 +2,9 @@
 #define DS18B20_BITBANG_H
 
 #include "onewire.h"
-
+/**
+ * @brief Estructura para el sensor DS18B20.
+ */
 typedef struct
 {
     OneWireBus bus;

@@ -3,7 +3,9 @@
 #include "esp_log.h"
 
 static const char *TAG = "fan_control";
-
+/**
+ * @brief Inicializa el control del ventilador mediante PWM.
+ */
 // PWM parameters
 #define FAN_PWM_GPIO 14    // GPIO asignado
 #define FAN_PWM_FREQ 25000 // 25 kHz (ideal para ventilador)
@@ -12,7 +14,9 @@ static const char *TAG = "fan_control";
 #define FAN_PWM_CHANNEL LEDC_CHANNEL_0
 
 static int current_pwm_percent = 0; // PWM actual en %
-
+/**
+ * @brief Inicializa el control del ventilador mediante PWM.
+ */
 void fan_control_init(void)
 {
     ESP_LOGI(TAG, "Inicializando ventilador PWM GPIO %d...", FAN_PWM_GPIO);
@@ -38,7 +42,10 @@ void fan_control_init(void)
 
     ESP_LOGI(TAG, "Ventilador PWM inicializado.");
 }
-
+/**
+ * @brief Establece el valor de PWM del ventilador en porcentaje (0-100%).
+ * @param percent Porcentaje de PWM (0-100).
+ */
 void fan_set_pwm(int percent)
 {
     if (percent < 0)
@@ -56,7 +63,10 @@ void fan_set_pwm(int percent)
     ledc_set_duty(LEDC_LOW_SPEED_MODE, FAN_PWM_CHANNEL, duty);
     ledc_update_duty(LEDC_LOW_SPEED_MODE, FAN_PWM_CHANNEL);
 }
-
+/**
+ * @brief Obtiene el valor actual de PWM del ventilador en porcentaje (0-100%).
+ * @return Porcentaje de PWM actual (0-100).
+ */
 int fan_get_current_pwm(void)
 {
     return current_pwm_percent;

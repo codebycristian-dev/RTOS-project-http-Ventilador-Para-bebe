@@ -44,17 +44,24 @@ esp_netif_t *esp_netif_ap = NULL;
 bool time_was_synchronized;
 
 extern uint8_t s_led_state;
-
+/**
+ * @brief Inicializa la variable que indica si el tiempo fue sincronizado.
+ */
 void init_obtain_time(void)
 {
 	time_was_synchronized = false;
 }
-
+/**
+ * @brief Obtiene el estado de sincronización del tiempo.
+ * @return true si el tiempo fue sincronizado, false en caso contrario.
+ */
 bool get_state_time_was_synchronized(void)
 {
 	return time_was_synchronized;
 }
-
+/**
+ * @brief Obtiene el tiempo actual mediante SNTP y lo configura en el sistema.
+ */
 static void obtain_time(void)
 {
 	setenv("TZ", "EST5EDT,M3.2.0/2,M11.1.0", 1);
@@ -89,7 +96,11 @@ static void obtain_time(void)
 		ESP_LOGE(TAG, "Unable to set system time. Check your SNTP configuration.");
 	}
 }
-
+/**
+ * @brief Guarda las credenciales de WiFi en NVS.
+ * @param ssid SSID de la red WiFi.
+ * @param password Contraseña de la red WiFi.
+ */
 void save_wifi_credentials(const char *ssid, const char *password)
 {
 	nvs_handle_t nvs_handle;
@@ -99,7 +110,11 @@ void save_wifi_credentials(const char *ssid, const char *password)
 	ESP_ERROR_CHECK(nvs_commit(nvs_handle));
 	nvs_close(nvs_handle);
 }
-
+/**
+ * @brief Carga las credenciales de WiFi desde NVS.
+ * @param ssid Puntero a la variable donde se almacenará el SSID.
+ * @param password Puntero a la variable donde se almacenará la contraseña.
+ */
 void load_wifi_credentials(char *ssid, char *password)
 {
 	nvs_handle_t nvs_handle;
@@ -144,6 +159,10 @@ void load_wifi_credentials(char *ssid, char *password)
 
 	nvs_close(nvs_handle);
 }
+/**
+ * @brief Verifica si existen credenciales de WiFi guardadas en NVS.
+ * @return true si existen credenciales, false en caso contrario.
+ */
 bool nvs_credentials_exist()
 {
 	nvs_handle_t nvs_handle;
@@ -166,7 +185,9 @@ bool nvs_credentials_exist()
 
 	return err == ESP_OK;
 }
-
+/**
+ * @brief Conecta el dispositivo a la red WiFi utilizando las credenciales guardadas en NVS.
+ */
 void connect_to_wifi(void)
 {
 
@@ -193,7 +214,10 @@ void connect_to_wifi(void)
 		xSemaphoreGive(mySemaphore);
 	}
 }
-
+/**
+ * @brief Tarea que verifica periódicamente el estado de la conexión WiFi en modo estación.
+ * @param pvParameters Parámetros de la tarea (no utilizados).
+ */
 void check_sta_connection_state(void *pvParameters)
 {
 	wifi_ap_record_t ap_info;
@@ -485,7 +509,9 @@ wifi_config_t *wifi_app_get_wifi_config(void)
 	return wifi_config;
 }
 
-
+/**
+ * Starts the WiFi application
+ */
 void wifi_app_start(void)
 {
 	ESP_LOGI(TAG, "STARTING WIFI APPLICATION");

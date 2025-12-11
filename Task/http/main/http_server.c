@@ -598,6 +598,11 @@ static esp_err_t http_server_wifi_connect_json_handler(httpd_req_t *req)
 
     return ESP_OK;
 }
+/**
+ * fan_get_state_handler responds with the current fan state in JSON format
+ * @param req HTTP request for which the uri needs to be handled.
+ * @return ESP_OK
+ */
 static esp_err_t fan_get_state_handler(httpd_req_t *req)
 {
     fan_config_t *cfg = config_app();
@@ -621,6 +626,11 @@ static esp_err_t fan_get_state_handler(httpd_req_t *req)
     httpd_resp_set_type(req, "application/json");
     return httpd_resp_sendstr(req, response);
 }
+/**
+ * fan_set_mode_handler sets the fan mode based on the received data
+ * @param req HTTP request for which the uri needs to be handled.
+ * @return ESP_OK
+ */
 static esp_err_t fan_set_mode_handler(httpd_req_t *req)
 {
     char buf[64];
@@ -638,6 +648,11 @@ static esp_err_t fan_set_mode_handler(httpd_req_t *req)
     httpd_resp_sendstr(req, "OK");
     return ESP_OK;
 }
+/**
+ * fan_set_manual_pwm_handler sets the manual PWM value for the fan
+ * @param req HTTP request for which the uri needs to be handled.
+ * @return ESP_OK
+ */
 static esp_err_t fan_set_manual_pwm_handler(httpd_req_t *req)
 {
     char buf[64];
@@ -655,6 +670,11 @@ static esp_err_t fan_set_manual_pwm_handler(httpd_req_t *req)
     httpd_resp_sendstr(req, "OK");
     return ESP_OK;
 }
+/**
+ * fan_set_auto_handler sets the automatic temperature thresholds for the fan
+ * @param req HTTP request for which the uri needs to be handled.
+ * @return ESP_OK
+ */
 static esp_err_t fan_set_auto_handler(httpd_req_t *req)
 {
     char buf[128];
@@ -697,7 +717,11 @@ static esp_err_t fan_set_auto_handler(httpd_req_t *req)
     httpd_resp_sendstr(req, "OK");
     return ESP_OK;
 }
-
+/**
+ * fan_get_register_handler responds with the configuration of a specific fan register in JSON format
+ * @param req HTTP request for which the uri needs to be handled.
+ * @return ESP_OK
+ */
 static esp_err_t fan_get_register_handler(httpd_req_t *req)
 {
     char query[32];
@@ -750,10 +774,24 @@ static esp_err_t fan_get_register_handler(httpd_req_t *req)
     httpd_resp_set_type(req, "application/json");
     return httpd_resp_sendstr(req, response);
 }
+/**
+ * Helper function to check if two time intervals overlap.
+ * @param s1 Start of the first interval in minutes.
+ * @param e1 End of the first interval in minutes.
+ * @param s2 Start of the second interval in minutes.
+ * @param e2 End of the second interval in minutes.
+ * @return true if the intervals overlap, false otherwise.
+ */
 static bool intervals_overlap(int s1, int e1, int s2, int e2)
 {
     return (s1 < e2) && (s2 < e1);
 }
+/**
+ * fan_set_register_handler updates the configuration of a specific fan register
+ * after checking for conflicts with other active registers.
+ * @param req HTTP request for which the uri needs to be handled.
+ * @return ESP_OK
+ */
 static esp_err_t fan_set_register_handler(httpd_req_t *req)
 {
     char buf[256];
@@ -1028,7 +1066,9 @@ static httpd_handle_t http_server_configure(void)
 
     return NULL;
 }
-
+/**
+ * Starts the HTTP server if it is not already running.
+ */
 void http_server_start(void)
 {
     if (http_server_handle == NULL)
@@ -1036,7 +1076,9 @@ void http_server_start(void)
         http_server_handle = http_server_configure();
     }
 }
-
+/**
+ * Stops the HTTP server if it is running.
+ */
 void http_server_stop(void)
 {
     if (http_server_handle)
@@ -1059,7 +1101,10 @@ BaseType_t http_server_monitor_send_message(http_server_message_e msgID)
     msg.msgID = msgID;
     return xQueueSend(http_server_monitor_queue_handle, &msg, portMAX_DELAY);
 }
-
+/**
+ * Callback function invoked when the firmware update reset timer times out.
+ * @param arg Pointer to user-defined argument (not used in this function).
+ */
 void http_server_fw_update_reset_callback(void *arg)
 {
     ESP_LOGI(TAG, "http_server_fw_update_reset_callback: Timer timed-out, restarting the device");

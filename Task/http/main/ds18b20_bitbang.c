@@ -2,12 +2,22 @@
 #include "esp_rom_sys.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-
+/**
+ * @brief Inicializa el sensor DS18B20 en el pin especificado.
+ * @param sensor Puntero a la estructura DS18B20.
+ * @param pin Número de GPIO donde está conectado el sensor.
+ * /
+ */
 void ds18b20_init(DS18B20 *sensor, gpio_num_t pin)
 {
     onewire_init(&sensor->bus, pin);
 }
-
+/**
+ *  @brief Lee la temperatura del sensor DS18B20.
+ * @param sensor Puntero a la estructura DS18B20.
+ * @param temp_c Puntero a la variable donde se almacenará la temperatura en grados Celsius.
+ * @return true si la lectura fue exitosa, false en caso contrario.
+ */
 bool ds18b20_read_temperature(DS18B20 *sensor, float *temp_c)
 {
     if (!onewire_reset(&sensor->bus))

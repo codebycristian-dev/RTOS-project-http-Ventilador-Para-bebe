@@ -12,14 +12,18 @@
 #include "logic_app.h"
 
 #define BLINK_GPIO 2
-
+/**
+ * @brief Configura el pin del LED para parpadeo.
+ */
 static void configure_led(void)
 {
 
 	gpio_reset_pin(BLINK_GPIO);
 	gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
 }
-
+/**
+ * @brief Punto de entrada principal de la aplicación.
+ */
 void app_main(void)
 {
 	// Initialize NVS

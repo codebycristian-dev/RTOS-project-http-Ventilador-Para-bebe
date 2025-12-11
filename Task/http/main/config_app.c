@@ -12,7 +12,12 @@ fan_config_t *config_app(void)
 {
     return &cfg;
 }
-
+/**
+ * @brief Carga un registro programado desde NVS.
+ * @param h Handle de NVS.
+ * @param key Clave del registro.
+ * @param r Puntero al registro donde se cargará la información.
+ */
 static void load_register(nvs_handle_t h, const char *key, fan_register_t *r)
 {
     size_t size = sizeof(fan_register_t);
@@ -30,12 +35,19 @@ static void load_register(nvs_handle_t h, const char *key, fan_register_t *r)
         r->days = 0x7F; // Todos los días activados
     }
 }
-
+/**
+ * @brief Guarda un registro programado en NVS.
+ * @param h Handle de NVS.
+ * @param key Clave del registro.
+ * @param r Puntero al registro a guardar.
+ */
 static void save_register(nvs_handle_t h, const char *key, fan_register_t *r)
 {
     nvs_set_blob(h, key, r, sizeof(fan_register_t));
 }
-
+/**
+ * @brief Inicializa NVS y carga toda la configuración del ventilador.
+ */
 void config_app_init(void)
 {
     ESP_LOGI(TAG, "Inicializando configuración del ventilador...");
@@ -93,7 +105,9 @@ void config_app_init(void)
 
     ESP_LOGI(TAG, "Configuración cargada correctamente.");
 }
-
+/**
+ * @brief Guarda toda la configuración en NVS.
+ */
 void config_app_save(void)
 {
     ESP_LOGI(TAG, "Guardando configuración del ventilador...");
