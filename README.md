@@ -4,6 +4,8 @@ Este proyecto implementa un **sistema de ventilación inteligente** basado en un
 
 Permite controlar manualmente el ventilador, usar un modo automático por temperatura y un modo programado con hasta **3 registros horarios**, todos configurables desde un panel web moderno.
 
+En el siguiente Repositorio en la carpeta http se puede observar los archivos del proyecto principal a cabo en las demás carpetas tambien se puede encontrar archivos con bases interesantes para RTOS en esp32
+
 ---
 
 ## 🚀 Características principales
